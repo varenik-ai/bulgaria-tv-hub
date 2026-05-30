@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Bulgaria TV — Болгарское ТВ онлайн</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: #0a0a0a; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: white; }
+    body { display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+
+    .header { text-align: center; margin-bottom: 28px; }
+    .flag { font-size: 48px; margin-bottom: 8px; }
+    .title { font-size: 26px; font-weight: 900; color: white; letter-spacing: 1px; }
+    .subtitle { font-size: 14px; color: #666; margin-top: 6px; }
+
+    .channels { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
+
+    .card {
+      background: #141414;
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid #222;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+    }
+    .card.nova::before  { background: #e63946; }
+    .card.kino::before  { background: #e67e22; }
+    .card.btv::before   { background: #2980b9; }
+
+    .card:active { transform: scale(0.98); opacity: 0.9; }
+
+    .card-logo {
+      width: 56px; height: 56px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: #1e1e1e;
+      padding: 6px;
+      flex-shrink: 0;
+    }
+
+    .card-logo-placeholder {
+      width: 56px; height: 56px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .nova  .card-logo-placeholder { background: #2a0a0d; }
+    .kino  .card-logo-placeholder { background: #2a1a0a; }
+    .btv   .card-logo-placeholder { background: #0a1a2a; }
+
+    .card-info { flex: 1; }
+    .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: #666; }
+
+    .card-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .nova  .card-badge { background: rgba(230,57,70,0.15);  color: #e63946; }
+    .kino  .card-badge { background: rgba(230,126,34,0.15); color: #e67e22; }
+    .btv   .card-badge { background: rgba(41,128,185,0.15); color: #2980b9; }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+    .nova  .live-dot { background: #e63946; }
+    .kino  .live-dot { background: #e67e22; }
+    .btv   .live-dot { background: #2980b9; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .footer { margin-top: 32px; text-align: center; color: #444; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="flag">🇧🇬</div>
+  <div class="title">BULGARIA TV</div>
+  <div class="subtitle">Болгарско телевизия на живо</div>
+</div>
+
+<div class="channels">
+
+  <a class="card nova" id="nova">
+    <div class="card-logo-placeholder">📺</div>
+    <div class="card-info">
+      <div class="card-name">Nova TV</div>
+      <div class="card-desc">Водещ развлекателен канал</div>
+    </div>
+    <div class="card-badge">
+      <div class="live-dot"></div>
+      НА ЖИВО
+    </div>
+  </a>
+
+  <a class="card kino" id="kino">
+    <div class="card-logo-placeholder">🎬</div>
+    <div class="card-info">
+      <div class="card-name">Kino Nova</div>
+      <div class="card-desc">Филми и сериали 24/7</div>
+    </div>
+    <div class="card-badge">
+      <div class="live-dot"></div>
+      НА ЖИВО
+    </div>
+  </a>
+
+  <a class="card btv" id="btv">
+    <div class="card-logo-placeholder">📡</div>
+    <div class="card-info">
+      <div class="card-name">bTV</div>
+      <div class="card-desc">Новини и забавление</div>
+    </div>
+    <div class="card-badge">
+      <div class="live-dot"></div>
+      НА ЖИВО
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">
+  Безплатно • HD качество • 8 езика
+</div>
+
+<script>
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  }
+
+  const CHANNELS = {
+    nova: 'https://varenik-ai.github.io/nova-tv-app/',
+    kino: 'https://varenik-ai.github.io/kino-nova-app/',
+    btv:  'https://varenik-ai.github.io/btv-app/',
+  };
+
+  function openChannel(url) {
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.openLink(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
+  document.getElementById('nova').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.nova); };
+  document.getElementById('kino').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.kino); };
+  document.getElementById('btv').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.btv);  };
+</script>
+</body>
+</html>

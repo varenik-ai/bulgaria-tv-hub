@@ -44,6 +44,7 @@
     .card.btv::before   { background: #2980b9; }
     .card.action::before { background: #8e44ad; }
     .card.cinema::before { background: #c0392b; }
+    .card.comedy::before { background: #f39c12; }
 
     .card:active { transform: scale(0.98); opacity: 0.9; }
 
@@ -68,6 +69,7 @@
     .btv   .card-logo-placeholder { background: #0a1a2a; }
     .action .card-logo-placeholder { background: #1a0a2a; }
     .cinema .card-logo-placeholder { background: #1a0a0a; }
+    .comedy .card-logo-placeholder { background: #1a1a0a; }
 
     .card-info { flex: 1; }
     .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
@@ -85,6 +87,7 @@
     .btv   .card-badge { background: rgba(41,128,185,0.15); color: #2980b9; }
     .action .card-badge { background: rgba(142,68,173,0.15); color: #8e44ad; }
     .cinema .card-badge { background: rgba(192,57,43,0.15); color: #c0392b; }
+    .comedy .card-badge { background: rgba(243,156,18,0.15); color: #f39c12; }
 
     .live-dot {
       width: 6px; height: 6px;
@@ -96,6 +99,7 @@
     .btv   .live-dot { background: #2980b9; }
     .action .live-dot { background: #8e44ad; }
     .cinema .live-dot { background: #c0392b; }
+    .comedy .live-dot { background: #f39c12; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     .footer { margin-top: 32px; text-align: center; color: #444; font-size: 12px; }
@@ -173,6 +177,19 @@
     </div>
   </a>
 
+
+  <a class="card comedy" id="comedy">
+    <div class="card-logo-placeholder">😂</div>
+    <div class="card-info">
+      <div class="card-name">bTV Comedy</div>
+      <div class="card-desc">Комедии и забавления 24/7</div>
+    </div>
+    <div class="card-badge">
+      <div class="live-dot"></div>
+      НА ЖИВО
+    </div>
+  </a>
+
 </div>
 
 <div class="footer">
@@ -191,6 +208,7 @@
     btv:    'https://varenik-ai.github.io/btv-app/',
     action:  'https://varenik-ai.github.io/btv-action-app/',
     cinema:  'https://varenik-ai.github.io/btv-cinema-app/',
+    comedy:  'https://varenik-ai.github.io/btv-comedy-app/',
   };
 
   function openChannel(url) {
@@ -206,6 +224,7 @@
   document.getElementById('btv').onclick    = (e) => { e.preventDefault(); openChannel(CHANNELS.btv);    };
   document.getElementById('action').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.action);  };
   document.getElementById('cinema').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.cinema);  };
+  document.getElementById('comedy').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.comedy);  };
 </script>
 </body>
 </html>

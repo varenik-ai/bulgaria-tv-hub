@@ -42,6 +42,7 @@
     .card.nova::before  { background: #e63946; }
     .card.kino::before  { background: #e67e22; }
     .card.btv::before   { background: #2980b9; }
+    .card.action::before { background: #8e44ad; }
 
     .card:active { transform: scale(0.98); opacity: 0.9; }
 
@@ -64,6 +65,7 @@
     .nova  .card-logo-placeholder { background: #2a0a0d; }
     .kino  .card-logo-placeholder { background: #2a1a0a; }
     .btv   .card-logo-placeholder { background: #0a1a2a; }
+    .action .card-logo-placeholder { background: #1a0a2a; }
 
     .card-info { flex: 1; }
     .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
@@ -79,6 +81,7 @@
     .nova  .card-badge { background: rgba(230,57,70,0.15);  color: #e63946; }
     .kino  .card-badge { background: rgba(230,126,34,0.15); color: #e67e22; }
     .btv   .card-badge { background: rgba(41,128,185,0.15); color: #2980b9; }
+    .action .card-badge { background: rgba(142,68,173,0.15); color: #8e44ad; }
 
     .live-dot {
       width: 6px; height: 6px;
@@ -88,6 +91,7 @@
     .nova  .live-dot { background: #e63946; }
     .kino  .live-dot { background: #e67e22; }
     .btv   .live-dot { background: #2980b9; }
+    .action .live-dot { background: #8e44ad; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     .footer { margin-top: 32px; text-align: center; color: #444; font-size: 12px; }
@@ -139,6 +143,19 @@
     </div>
   </a>
 
+
+  <a class="card action" id="action">
+    <div class="card-logo-placeholder">⚡</div>
+    <div class="card-info">
+      <div class="card-name">bTV Action</div>
+      <div class="card-desc">Екшън, филми и спорт 24/7</div>
+    </div>
+    <div class="card-badge">
+      <div class="live-dot"></div>
+      НА ЖИВО
+    </div>
+  </a>
+
 </div>
 
 <div class="footer">
@@ -154,7 +171,8 @@
   const CHANNELS = {
     nova: 'https://varenik-ai.github.io/nova-tv-app/',
     kino: 'https://varenik-ai.github.io/kino-nova-app/',
-    btv:  'https://varenik-ai.github.io/btv-app/',
+    btv:    'https://varenik-ai.github.io/btv-app/',
+    action: 'https://varenik-ai.github.io/btv-action-app/',
   };
 
   function openChannel(url) {
@@ -167,7 +185,8 @@
 
   document.getElementById('nova').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.nova); };
   document.getElementById('kino').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.kino); };
-  document.getElementById('btv').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.btv);  };
+  document.getElementById('btv').onclick    = (e) => { e.preventDefault(); openChannel(CHANNELS.btv);    };
+  document.getElementById('action').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.action);  };
 </script>
 </body>
 </html>

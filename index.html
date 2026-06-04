@@ -45,6 +45,7 @@
     .card.action::before { background: #8e44ad; }
     .card.cinema::before { background: #c0392b; }
     .card.comedy::before { background: #f39c12; }
+    .card.novasport::before { background: #27ae60; }
 
     .card:active { transform: scale(0.98); opacity: 0.9; }
 
@@ -70,6 +71,7 @@
     .action .card-logo-placeholder { background: #1a0a2a; }
     .cinema .card-logo-placeholder { background: #1a0a0a; }
     .comedy .card-logo-placeholder { background: #1a1a0a; }
+    .novasport .card-logo-placeholder { background: #0a1a0a; }
 
     .card-info { flex: 1; }
     .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
@@ -88,6 +90,7 @@
     .action .card-badge { background: rgba(142,68,173,0.15); color: #8e44ad; }
     .cinema .card-badge { background: rgba(192,57,43,0.15); color: #c0392b; }
     .comedy .card-badge { background: rgba(243,156,18,0.15); color: #f39c12; }
+    .novasport .card-badge { background: rgba(39,174,96,0.15); color: #27ae60; }
 
     .live-dot {
       width: 6px; height: 6px;
@@ -100,6 +103,7 @@
     .action .live-dot { background: #8e44ad; }
     .cinema .live-dot { background: #c0392b; }
     .comedy .live-dot { background: #f39c12; }
+    .novasport .live-dot { background: #27ae60; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     .footer { margin-top: 32px; text-align: center; color: #444; font-size: 12px; }
@@ -190,6 +194,19 @@
     </div>
   </a>
 
+
+  <a class="card novasport" id="novasport">
+    <div class="card-logo-placeholder">⚽</div>
+    <div class="card-info">
+      <div class="card-name">Nova Sport</div>
+      <div class="card-desc">Спорт на живо 24/7</div>
+    </div>
+    <div class="card-badge">
+      <div class="live-dot"></div>
+      НА ЖИВО
+    </div>
+  </a>
+
 </div>
 
 <div class="footer">
@@ -208,7 +225,8 @@
     btv:    'https://varenik-ai.github.io/btv-app/',
     action:  'https://varenik-ai.github.io/btv-action-app/',
     cinema:  'https://varenik-ai.github.io/btv-cinema-app/',
-    comedy:  'https://varenik-ai.github.io/btv-comedy-app/',
+    comedy:   'https://varenik-ai.github.io/btv-comedy-app/',
+    novasport:'https://varenik-ai.github.io/nova-sport-app/',
   };
 
   function openChannel(url) {
@@ -224,7 +242,8 @@
   document.getElementById('btv').onclick    = (e) => { e.preventDefault(); openChannel(CHANNELS.btv);    };
   document.getElementById('action').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.action);  };
   document.getElementById('cinema').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.cinema);  };
-  document.getElementById('comedy').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.comedy);  };
+  document.getElementById('comedy').onclick    = (e) => { e.preventDefault(); openChannel(CHANNELS.comedy);    };
+  document.getElementById('novasport').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.novasport); };
 </script>
 </body>
 </html>

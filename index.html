@@ -410,10 +410,20 @@ async function init() {
   if (!currentCh) return;
   setStatus('loading'); reloadBtn.style.display='none'; unmuteBtn.style.display='none';
   try {
-    const r = await fetch(currentCh.stream + '&t=' + Date.now(), { cache:'no-store' });
-    const d = await r.json();
-    if (d.url) loadStream(d.url); else setStatus('errorUrl', true);
-  } catch(e) { setStatus('errorServer', true); }
+    const url = currentCh.stream + '&t=' + Date.now();
+    const r = await fetch(url, { cache:'no-store' });
+    const text = await r.text();
+    let d;
+    try { d = JSON.parse(text); } catch(je) {
+      document.getElementById('status').textContent = 'JSON err: ' + text.slice(0,80);
+      return;
+    }
+    if (d.url) loadStream(d.url); else {
+      document.getElementById('status').textContent = 'no url: ' + text.slice(0,80);
+    }
+  } catch(e) {
+    document.getElementById('status').textContent = 'fetch err v3: ' + e.message;
+  }
 }
 
 // ── Кнопки ─────────────────────────────────────────────────────────────────

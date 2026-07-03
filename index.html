@@ -350,7 +350,9 @@ function stopStream() {
 function loadStream(url) {
   if (!currentCh) return;
   userUnmuted=false;
-  const proxied = currentCh.proxy + encodeURIComponent(url);
+  // aistr.xyz:28791 — стриминговый CDN с CORS-заголовками, грузим напрямую.
+  // Cloudflare Workers не могут проксировать нестандартный порт 28791.
+  const streamUrl = url;
   stopStream(); setStatus('connecting'); unmuteBtn.style.display='none';
 
   // Android: audio-bg для фонового звука
@@ -358,7 +360,7 @@ function loadStream(url) {
     const audioBg = document.getElementById('audio-bg');
     if (audioBg && Hls.isSupported()) {
       hlsAudio = new Hls({ liveSyncDurationCount:3, enableWorker:true });
-      hlsAudio.loadSource(proxied); hlsAudio.attachMedia(audioBg);
+      hlsAudio.loadSource(streamUrl); hlsAudio.attachMedia(audioBg);
       hlsAudio.on(Hls.Events.MANIFEST_PARSED, () => { audioBg.muted=true; audioBg.play().catch(()=>{}); });
     }
   }
@@ -366,7 +368,7 @@ function loadStream(url) {
   video.muted=true;
   if (Hls.isSupported()) {
     hls = new Hls({ liveSyncDurationCount:3, lowLatencyMode:true, enableWorker:true, backBufferLength:30 });
-    hls.loadSource(proxied); hls.attachMedia(video);
+    hls.loadSource(streamUrl); hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, async () => {
       setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
       try {
@@ -384,7 +386,7 @@ function loadStream(url) {
       setStatus('errorStream', true); setTimeout(() => init(), 5000);
     });
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src=proxied; setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
+    video.src=streamUrl; setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
     video.play()
       .then(() => { unmuteBtn.style.display=audioOnly?'none':'block'; setupMediaSession(); if(!isIOS())requestWakeLock(); })
       .catch(() => setStatus('pressPlay'));
@@ -397,9 +399,8 @@ function loadStream(url) {
       const r = await fetch(currentCh.stream + '&t=' + Date.now(), { cache:'no-store' });
       const d = await r.json();
       if (d.url) {
-        const np = currentCh.proxy + encodeURIComponent(d.url);
-        if (hls) hls.loadSource(np);
-        if (hlsAudio) hlsAudio.loadSource(np);
+        if (hls) hls.loadSource(d.url);
+        if (hlsAudio) hlsAudio.loadSource(d.url);
       }
     } catch(e) {}
   }, 20 * 60 * 1000);

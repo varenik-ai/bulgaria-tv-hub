@@ -3,247 +3,476 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Bulgaria TV — Болгарское ТВ онлайн</title>
+  <title>България ТВ</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { background: #0a0a0a; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: white; }
-    body { display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html,body { background:#0a0a14; height:100%; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:white; overflow:hidden; touch-action:pan-x pan-y pinch-zoom; }
 
-    .header { text-align: center; margin-bottom: 28px; }
-    .flag { font-size: 48px; margin-bottom: 8px; }
-    .title { font-size: 26px; font-weight: 900; color: white; letter-spacing: 1px; }
-    .subtitle { font-size: 14px; color: #666; margin-top: 6px; }
+    /* ── Hub ── */
+    #hub-screen { display:flex; flex-direction:column; align-items:center; height:100%; overflow-y:auto; padding:24px 16px 40px; padding-top:calc(24px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); }
+    .hub-logo { font-size:26px; font-weight:900; letter-spacing:2px; margin-bottom:4px; text-transform:uppercase; }
+    .hub-logo .green { color:#00966E; }
+    .hub-logo .white { color:white; }
+    .hub-logo .red   { color:#D62612; }
+    .hub-sub { font-size:13px; color:#555; margin-bottom:24px; }
+    .channels-grid { width:100%; max-width:560px; display:flex; flex-direction:column; gap:10px; }
+    .channel-card { background:#1a1a28; border:1px solid #2a2a3a; border-radius:14px; padding:16px 18px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .channel-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px 0 0 4px; background:var(--ch-color,#555); }
+    .channel-card:active { opacity:.75; transform:scale(.98); }
+    .ch-icon { width:52px; height:52px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:900; flex-shrink:0; }
+    .ch-info { flex:1; }
+    .ch-name { font-size:16px; font-weight:700; margin-bottom:3px; }
+    .ch-desc { font-size:12px; color:#555; }
+    .live-dot { width:8px; height:8px; background:var(--ch-color,#555); border-radius:50%; animation:pulse 1.2s infinite; flex-shrink:0; }
 
-    .channels { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px; }
+    /* ── Player ── */
+    #player-screen { display:none; flex-direction:column; align-items:center; height:100%; }
+    .player-header { width:100%; display:flex; align-items:center; gap:10px; padding:10px 14px; padding-top:calc(10px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); background:#0d0d1a; border-bottom:1px solid #1e1e2e; flex-shrink:0; }
+    .back-btn { background:#1a1a2e; border:1px solid #333; border-radius:8px; padding:7px 12px; color:#aaa; font-size:14px; cursor:pointer; }
+    .back-btn:active { opacity:.7; }
+    .ch-title-bar { font-size:15px; font-weight:700; }
+    .live-badge-top { color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:6px; display:none; }
 
-    .card {
-      background: #141414;
-      border-radius: 16px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      border: 1px solid #222;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-decoration: none;
-      color: white;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 4px;
-      border-radius: 4px 0 0 4px;
-    }
-    .card.nova::before  { background: #e63946; }
-    .card.kino::before  { background: #e67e22; }
-    .card.btv::before   { background: #2980b9; }
-    .card.action::before { background: #8e44ad; }
-    .card.cinema::before { background: #c0392b; }
-    .card.comedy::before { background: #f39c12; }
-    .card.novasport::before { background: #27ae60; }
+    /* ── Video ── */
+    #video-container { width:100%; flex:1; background:#000; position:relative; overflow:visible; touch-action:pinch-zoom; }
+    #video-container.css-fs { position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; z-index:9999 !important; }
+    #video-container.css-fs .live-badge,
+    #video-container:fullscreen .live-badge,
+    #video-container:-webkit-full-screen .live-badge { display:none !important; }
+    #video-container.css-fs .overlay { display:none !important; }
+    #video-container:fullscreen .overlay,
+    #video-container:-webkit-full-screen .overlay { display:none !important; }
+    video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; }
+    audio { display:none; }
 
-    .card:active { transform: scale(0.98); opacity: 0.9; }
+    .live-badge { position:absolute; top:14px; left:14px; color:white; font-size:13px; padding:5px 12px; border-radius:30px; display:none; align-items:center; gap:6px; font-weight:700; z-index:25; background:rgba(0,150,110,.9); }
+    #audio-badge { position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:3; pointer-events:none; background:rgba(0,0,0,.85); }
+    #audio-badge .pill { padding:14px 20px; border-radius:999px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); font-size:15px; }
+    body.audio-only #audio-badge { display:flex; }
+    body.audio-only video { opacity:.02; }
 
-    .card-logo {
-      width: 56px; height: 56px;
-      border-radius: 12px;
-      object-fit: contain;
-      background: #1e1e1e;
-      padding: 6px;
-      flex-shrink: 0;
-    }
+    .overlay { position:absolute; inset:0; z-index:20; pointer-events:none; transition:opacity .5s ease; }
+    .overlay.hidden { opacity:0; pointer-events:none; }
+    .controls { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,.92)); padding:28px 14px; pointer-events:all; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .btn { padding:12px 18px; color:white; border:none; border-radius:10px; font-size:14px; cursor:pointer; transition:all .2s; flex:1; max-width:160px; background:rgba(255,255,255,.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.1); }
+    .btn:active { transform:scale(.96); }
+    .btn.danger { background:#00966E; }
+    .btn.reload { background:#333; }
 
-    .card-logo-placeholder {
-      width: 56px; height: 56px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
-      flex-shrink: 0;
-    }
-    .nova  .card-logo-placeholder { background: #2a0a0d; }
-    .kino  .card-logo-placeholder { background: #2a1a0a; }
-    .btv   .card-logo-placeholder { background: #0a1a2a; }
-    .action .card-logo-placeholder { background: #1a0a2a; }
-    .cinema .card-logo-placeholder { background: #1a0a0a; }
-    .comedy .card-logo-placeholder { background: #1a1a0a; }
-    .novasport .card-logo-placeholder { background: #0a1a0a; }
-
-    .card-info { flex: 1; }
-    .card-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-    .card-desc { font-size: 13px; color: #666; }
-
-    .card-badge {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 12px; font-weight: 600;
-      padding: 5px 10px;
-      border-radius: 20px;
-      flex-shrink: 0;
-    }
-    .nova  .card-badge { background: rgba(230,57,70,0.15);  color: #e63946; }
-    .kino  .card-badge { background: rgba(230,126,34,0.15); color: #e67e22; }
-    .btv   .card-badge { background: rgba(41,128,185,0.15); color: #2980b9; }
-    .action .card-badge { background: rgba(142,68,173,0.15); color: #8e44ad; }
-    .cinema .card-badge { background: rgba(192,57,43,0.15); color: #c0392b; }
-    .comedy .card-badge { background: rgba(243,156,18,0.15); color: #f39c12; }
-    .novasport .card-badge { background: rgba(39,174,96,0.15); color: #27ae60; }
-
-    .live-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      animation: pulse 1.2s infinite;
-    }
-    .nova  .live-dot { background: #e63946; }
-    .kino  .live-dot { background: #e67e22; }
-    .btv   .live-dot { background: #2980b9; }
-    .action .live-dot { background: #8e44ad; }
-    .cinema .live-dot { background: #c0392b; }
-    .comedy .live-dot { background: #f39c12; }
-    .novasport .live-dot { background: #27ae60; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-    .footer { margin-top: 32px; text-align: center; color: #444; font-size: 12px; }
+    #status { font-size:13px; color:#888; text-align:center; padding:8px 0 0; flex-shrink:0; }
+    .dot { display:inline-block; width:8px; height:8px; background:#00966E; border-radius:50%; margin-right:6px; animation:pulse 1.2s infinite; vertical-align:middle; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.25} }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="flag">🇧🇬</div>
-  <div class="title">BULGARIA TV</div>
-  <div class="subtitle">Българска телевизия на живо</div>
+<div id="hub-screen">
+  <div class="hub-logo"><span class="green">БЪЛ</span><span class="white">ГА</span><span class="red">РИЯ</span> <span class="white">ТВ</span></div>
+  <div class="hub-sub">На живо — Безплатно — 24/7</div>
+  <div class="channels-grid" id="channels-grid"></div>
 </div>
 
-<div class="channels">
-
-  <a class="card nova" id="nova">
-    <div class="card-logo-placeholder">📺</div>
-    <div class="card-info">
-      <div class="card-name">Nova TV</div>
-      <div class="card-desc">Водещ развлекателен канал</div>
+<div id="player-screen">
+  <div class="player-header">
+    <button class="back-btn" id="back-btn">← Канали</button>
+    <span class="ch-title-bar" id="ch-title"></span>
+    <span class="live-badge-top" id="live-badge-top">LIVE</span>
+  </div>
+  <div id="video-container">
+    <div class="live-badge" id="live-badge"><span class="dot"></span> НА ЖИВО</div>
+    <div id="audio-badge"><div class="pill">🎧 Аудио режим</div></div>
+    <video id="video" autoplay playsinline webkit-playsinline airplay="allow" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;"></video>
+    <div class="overlay" id="overlay">
+      <div class="controls">
+        <button id="reload-btn" class="btn reload" style="display:none"></button>
+        <button id="unmute-btn" class="btn danger" style="display:none"></button>
+        <button id="mode-btn" class="btn"></button>
+        <button id="fullscreen-btn" class="btn"></button>
+        <button id="pip-btn" class="btn" style="display:none"></button>
+      </div>
     </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-  <a class="card kino" id="kino">
-    <div class="card-logo-placeholder">🎬</div>
-    <div class="card-info">
-      <div class="card-name">Kino Nova</div>
-      <div class="card-desc">Филми и сериали 24/7</div>
-    </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-  <a class="card btv" id="btv">
-    <div class="card-logo-placeholder">📡</div>
-    <div class="card-info">
-      <div class="card-name">bTV</div>
-      <div class="card-desc">Новини и забавления</div>
-    </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-
-  <a class="card action" id="action">
-    <div class="card-logo-placeholder">⚡</div>
-    <div class="card-info">
-      <div class="card-name">bTV Action</div>
-      <div class="card-desc">Екшън, филми и спорт 24/7</div>
-    </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-
-  <a class="card cinema" id="cinema">
-    <div class="card-logo-placeholder">🎬</div>
-    <div class="card-info">
-      <div class="card-name">bTV Cinema</div>
-      <div class="card-desc">Филми и сериали 24/7</div>
-    </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-
-  <a class="card comedy" id="comedy">
-    <div class="card-logo-placeholder">😂</div>
-    <div class="card-info">
-      <div class="card-name">bTV Comedy</div>
-      <div class="card-desc">Комедии и забавления 24/7</div>
-    </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-
-  <a class="card novasport" id="novasport">
-    <div class="card-logo-placeholder">⚽</div>
-    <div class="card-info">
-      <div class="card-name">Nova Sport</div>
-      <div class="card-desc">Спорт на живо 24/7</div>
-    </div>
-    <div class="card-badge">
-      <div class="live-dot"></div>
-      НА ЖИВО
-    </div>
-  </a>
-
-</div>
-
-<div class="footer">
-  Безплатно • HD качество • 8 езика
+    <audio id="audio-bg" muted></audio>
+  </div>
+  <div id="status">...</div>
 </div>
 
 <script>
-  if (window.Telegram?.WebApp) {
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
+const tg = window.Telegram?.WebApp;
+
+// ── Safe area ──────────────────────────────────────────────────────────────
+function updateSafeArea() {
+  const tgTop = tg?.contentSafeAreaInsets?.top || tg?.safeAreaInsets?.top || 0;
+  const top = tgTop > 0 ? tgTop : (document.fullscreenElement || tg?.isFullscreen ? 32 : 0);
+  document.documentElement.style.setProperty('--tg-safe-top', top + 'px');
+}
+if (tg) {
+  tg.ready(); tg.expand();
+  try { tg.disableVerticalSwipes(); } catch(e) {}
+  try { tg.setHeaderColor('#000000'); } catch(e) {}
+  try { tg.setBackgroundColor('#000000'); } catch(e) {}
+  if (isAndroid() || isIOS()) setTimeout(() => { try { tg.requestFullscreen(); } catch(e) {} }, 300);
+  try { tg.onEvent('safeAreaChanged', updateSafeArea); } catch(e) {}
+  try { tg.onEvent('contentSafeAreaChanged', updateSafeArea); } catch(e) {}
+  setTimeout(updateSafeArea, 500);
+}
+
+// ── Определение платформы ──────────────────────────────────────────────────
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    || window.Telegram?.WebApp?.platform === 'ios';
+}
+function isAndroid() { return /Android/i.test(navigator.userAgent); }
+
+// ── Каналы ────────────────────────────────────────────────────────────────
+const PROXY = 'https://bulgaria-proxy.vercel.app';
+
+const CHANNELS = [
+  { id:'btv',       name:'bTV',        desc:'Новини и забавления',      icon:'bTV',  color:'#2980b9', iconBg:'#0a1a2a',
+    stream: PROXY+'/api/stream?channel=btv',       proxy: PROXY+'/api/proxy?url=' },
+  { id:'kinonova',  name:'Kino Nova',  desc:'Филми и сериали 24/7',     icon:'KN',   color:'#e67e22', iconBg:'#2a1a0a',
+    stream: PROXY+'/api/stream?channel=kinonova',  proxy: PROXY+'/api/proxy?url=' },
+  { id:'novasport', name:'Nova Sport', desc:'Спорт на живо 24/7',       icon:'NS',   color:'#27ae60', iconBg:'#0a1a0a',
+    stream: PROXY+'/api/stream?channel=novasport', proxy: PROXY+'/api/proxy?url=' },
+  { id:'btvaction', name:'bTV Action', desc:'Екшън и филми 24/7',       icon:'ACT',  color:'#8e44ad', iconBg:'#1a0a2a',
+    stream: PROXY+'/api/stream?channel=btvaction', proxy: PROXY+'/api/proxy?url=' },
+  { id:'btvcinema', name:'bTV Cinema', desc:'Филми и сериали 24/7',     icon:'CIN',  color:'#c0392b', iconBg:'#1a0a0a',
+    stream: PROXY+'/api/stream?channel=btvcinema', proxy: PROXY+'/api/proxy?url=' },
+  { id:'btvcomedy', name:'bTV Comedy', desc:'Комедии и забавления 24/7',icon:'COM',  color:'#f39c12', iconBg:'#1a1a0a',
+    stream: PROXY+'/api/stream?channel=btvcomedy', proxy: PROXY+'/api/proxy?url=' },
+];
+
+// ── Преводи ────────────────────────────────────────────────────────────────
+const T = {
+  bg:{ loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  ru:{ loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  en:{ loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  de:{ loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  fr:{ loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
+  es:{ loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  uk:{ loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
+  tr:{ loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
+};
+function getLang() {
+  try { const s=tg?.initDataUnsafe?.user?.language_code?.split('-')[0].toLowerCase(); if(s&&T[s]) return s; } catch(e) {}
+  const b=(navigator.language||'en').split('-')[0].toLowerCase(); return T[b]?b:'en';
+}
+const t = T[getLang()];
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const hubScreen    = document.getElementById('hub-screen');
+const playerScreen = document.getElementById('player-screen');
+const channelsGrid = document.getElementById('channels-grid');
+const backBtn      = document.getElementById('back-btn');
+const chTitle      = document.getElementById('ch-title');
+const liveBadgeTop = document.getElementById('live-badge-top');
+const video        = document.getElementById('video');
+const container    = document.getElementById('video-container');
+const overlay      = document.getElementById('overlay');
+const statusEl     = document.getElementById('status');
+const liveBadge    = document.getElementById('live-badge');
+const reloadBtn    = document.getElementById('reload-btn');
+const unmuteBtn    = document.getElementById('unmute-btn');
+const modeBtn      = document.getElementById('mode-btn');
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+const pipBtn       = document.getElementById('pip-btn');
+
+let currentCh=null, hls=null, hlsAudio=null, hideTimeout=null, tokenRefreshTimer=null;
+let userPaused=false, audioOnly=false, userUnmuted=false, isExpanded=false, wakeLockSentinel=null;
+
+reloadBtn.textContent     = t.reconnect;
+unmuteBtn.textContent     = t.unmute;
+modeBtn.textContent       = t.audioMode;
+fullscreenBtn.textContent = t.fullscreen;
+
+// ── Утилиты ────────────────────────────────────────────────────────────────
+function setStatus(key, isError) {
+  const msg = t[key] || key;
+  statusEl.innerHTML = isError ? '⚠️ '+msg : '<span class="dot"></span>'+msg;
+  reloadBtn.style.display = isError ? 'block' : 'none';
+}
+function enforceMute() { if (!userUnmuted) video.muted = true; }
+function setAudioMode(on) {
+  audioOnly = !!on;
+  document.body.classList.toggle('audio-only', audioOnly);
+  modeBtn.textContent = audioOnly ? t.videoMode : t.audioMode;
+  if (audioOnly) { overlay.classList.remove('hidden'); if (hideTimeout) clearTimeout(hideTimeout); }
+}
+function showUI() {
+  overlay.classList.remove('hidden');
+  if (hideTimeout) clearTimeout(hideTimeout);
+  if (isExpanded && !audioOnly) hideTimeout = setTimeout(() => overlay.classList.add('hidden'), 4000);
+}
+
+// ── Fullscreen ─────────────────────────────────────────────────────────────
+function enterFs() {
+  // iOS: нативный плеер
+  if (video.webkitEnterFullscreen && isIOS()) {
+    video.webkitEnterFullscreen();
+    isExpanded = true; fullscreenBtn.textContent = t.exitFs; return;
   }
+  // Android + Desktop
+  try { if (tg?.requestFullscreen) tg.requestFullscreen(); } catch(e) {}
+  if (container.requestFullscreen) {
+    container.requestFullscreen()
+      .then(() => { container.classList.remove('css-fs'); document.body.style.overflow=''; })
+      .catch(() => { container.classList.add('css-fs'); document.body.style.overflow='hidden'; });
+  } else if (container.webkitRequestFullscreen) {
+    container.webkitRequestFullscreen();
+  } else {
+    container.classList.add('css-fs'); document.body.style.overflow='hidden';
+  }
+  isExpanded = true; fullscreenBtn.textContent = t.exitFs;
+}
+function exitFs() {
+  try { if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {}
+  container.classList.remove('css-fs'); document.body.style.overflow='';
+  isExpanded = false; fullscreenBtn.textContent = t.fullscreen;
+  overlay.classList.remove('hidden');
+  if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout=null; }
+}
+fullscreenBtn.onclick = () => isExpanded ? exitFs() : enterFs();
 
-  const CHANNELS = {
-    nova: 'https://varenik-ai.github.io/nova-tv-app/',
-    kino: 'https://varenik-ai.github.io/kino-nova-app/',
-    btv:    'https://varenik-ai.github.io/btv-app/',
-    action:  'https://varenik-ai.github.io/btv-action-app/',
-    cinema:  'https://varenik-ai.github.io/btv-cinema-app/',
-    comedy:   'https://varenik-ai.github.io/btv-comedy-app/',
-    novasport:'https://varenik-ai.github.io/nova-sport-app/',
-  };
+function onFsChange() {
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fsEl) {
+    isExpanded = true; fullscreenBtn.textContent = t.exitFs;
+    overlay.classList.remove('hidden');
+    if (hideTimeout) clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => overlay.classList.add('hidden'), 3000);
+    video.style.objectFit = window.innerWidth > window.innerHeight ? 'cover' : 'contain';
+  } else {
+    isExpanded = false; fullscreenBtn.textContent = t.fullscreen;
+    overlay.classList.remove('hidden');
+    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout=null; }
+    video.style.objectFit = 'contain';
+    if (!userUnmuted) video.muted = true;
+  }
+}
+document.addEventListener('fullscreenchange', onFsChange);
+document.addEventListener('webkitfullscreenchange', onFsChange);
 
-  function openChannel(url) {
-    if (window.Telegram?.WebApp) {
-      Telegram.WebApp.openLink(url);
-    } else {
-      window.open(url, '_blank');
+// iOS: после выхода из fullscreen перезапускаем поток (критично!)
+video.addEventListener('webkitendfullscreen', async () => {
+  isExpanded = false; fullscreenBtn.textContent = t.fullscreen;
+  overlay.classList.remove('hidden');
+  setTimeout(() => { if (currentCh) { stopStream(); init(); } }, 300);
+});
+
+// ── Жесты ──────────────────────────────────────────────────────────────────
+let lastTap = 0;
+container.addEventListener('pointerup', e => {
+  if (e.target.closest('button')) return;
+  const now = Date.now();
+  if (now-lastTap < 280) { isExpanded ? exitFs() : enterFs(); lastTap=0; return; }
+  lastTap = now;
+  setTimeout(() => { if (Date.now()-lastTap >= 270) showUI(); }, 290);
+});
+container.addEventListener('pointermove', () => { if (isExpanded) showUI(); });
+container.addEventListener('touchstart', () => { if (isExpanded) showUI(); }, { passive:true });
+
+// ── PiP (только PC) ────────────────────────────────────────────────────────
+if (!isIOS() && !isAndroid()) pipBtn.style.display = 'block';
+pipBtn.textContent = '🎥 PiP';
+pipBtn.onclick = async () => {
+  try {
+    if (document.pictureInPictureElement) { await document.exitPictureInPicture(); pipBtn.textContent='🎥 PiP'; }
+    else if (!isIOS() && video.requestPictureInPicture) { await video.requestPictureInPicture(); pipBtn.textContent='✕ PiP'; }
+  } catch(e) {}
+};
+video.addEventListener('leavepictureinpicture', async () => {
+  pipBtn.textContent='🎥 PiP'; userUnmuted=false; video.muted=true;
+  if (video.paused) { try { await video.play(); } catch(e) {} }
+});
+
+// ── Wake Lock ───────────────────────────────────────────────────────────────
+async function requestWakeLock() {
+  try { if (!isIOS() && 'wakeLock' in navigator && !wakeLockSentinel) wakeLockSentinel=await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+
+// ── Media Session ───────────────────────────────────────────────────────────
+function setupMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  const name = currentCh ? currentCh.name : 'България ТВ';
+  navigator.mediaSession.metadata = new MediaMetadata({ title:name, artist:'На живо 🔴', album:'България ТВ' });
+  navigator.mediaSession.playbackState = 'playing';
+  navigator.mediaSession.setActionHandler('play', async () => { try { await video.play(); } catch(e) {} });
+  navigator.mediaSession.setActionHandler('pause', () => { video.pause(); });
+}
+
+// ── Фоновое воспроизведение ─────────────────────────────────────────────────
+let pauseByUser = false;
+video.addEventListener('mousedown', () => { pauseByUser=true; });
+video.addEventListener('touchstart', () => { pauseByUser=true; }, { passive:true });
+video.addEventListener('pause', () => {
+  if (isIOS() || (isAndroid() && pauseByUser)) userPaused=true;
+  pauseByUser=false;
+});
+video.addEventListener('play', () => {
+  if (!userUnmuted) video.muted=true;
+  userPaused=false;
+  if (isAndroid()) { const a=document.getElementById('audio-bg'); if(a) a.muted=true; }
+});
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState==='hidden') {
+    if (isIOS() || userPaused) return;
+    setTimeout(async () => {
+      if (video.paused) { try { await video.play(); } catch(e) {} }
+      const a=document.getElementById('audio-bg');
+      if (isAndroid() && a) { a.muted=false; if(a.paused){try{await a.play();}catch(e){}} video.muted=true; }
+    }, 300);
+  } else {
+    enforceMute();
+    if (isAndroid()) { const a=document.getElementById('audio-bg'); if(a) a.muted=true; }
+    if (!userPaused && video.paused) {
+      try { await video.play(); } catch(e) { if(currentCh){stopStream();init();} }
+    } else if (!userPaused && video.readyState<2) {
+      if (currentCh) { stopStream(); init(); }
+    }
+  }
+});
+window.addEventListener('pageshow', async () => {
+  if (!userPaused && video.paused) { try { await video.play(); } catch(e) {} }
+});
+
+// ── Поток ──────────────────────────────────────────────────────────────────
+function stopStream() {
+  if (hls) { hls.destroy(); hls=null; }
+  if (hlsAudio) { hlsAudio.destroy(); hlsAudio=null; }
+  if (tokenRefreshTimer) { clearInterval(tokenRefreshTimer); tokenRefreshTimer=null; }
+  video.src=''; liveBadge.style.display='none'; liveBadgeTop.style.display='none';
+  if (wakeLockSentinel) { wakeLockSentinel.release().catch(()=>{}); wakeLockSentinel=null; }
+}
+
+function loadStream(url) {
+  if (!currentCh) return;
+  userUnmuted=false;
+  const proxied = currentCh.proxy + encodeURIComponent(url);
+  stopStream(); setStatus('connecting'); unmuteBtn.style.display='none';
+
+  // Android: audio-bg для фонового звука
+  if (isAndroid()) {
+    const audioBg = document.getElementById('audio-bg');
+    if (audioBg && Hls.isSupported()) {
+      hlsAudio = new Hls({ liveSyncDurationCount:3, enableWorker:true });
+      hlsAudio.loadSource(proxied); hlsAudio.attachMedia(audioBg);
+      hlsAudio.on(Hls.Events.MANIFEST_PARSED, () => { audioBg.muted=true; audioBg.play().catch(()=>{}); });
     }
   }
 
-  document.getElementById('nova').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.nova); };
-  document.getElementById('kino').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.kino); };
-  document.getElementById('btv').onclick    = (e) => { e.preventDefault(); openChannel(CHANNELS.btv);    };
-  document.getElementById('action').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.action);  };
-  document.getElementById('cinema').onclick  = (e) => { e.preventDefault(); openChannel(CHANNELS.cinema);  };
-  document.getElementById('comedy').onclick    = (e) => { e.preventDefault(); openChannel(CHANNELS.comedy);    };
-  document.getElementById('novasport').onclick = (e) => { e.preventDefault(); openChannel(CHANNELS.novasport); };
+  video.muted=true;
+  if (Hls.isSupported()) {
+    hls = new Hls({ liveSyncDurationCount:3, lowLatencyMode:true, enableWorker:true, backBufferLength:30 });
+    hls.loadSource(proxied); hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, async () => {
+      setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
+      try {
+        if (!userUnmuted) video.muted=true;
+        await video.play();
+        unmuteBtn.style.display = audioOnly ? 'none' : 'block';
+        setupMediaSession();
+        if (!isIOS()) requestWakeLock();
+      } catch(e) { setStatus('pressPlay'); }
+    });
+    hls.on(Hls.Events.ERROR, (e, data) => {
+      if (!data.fatal) return;
+      if (data.type===Hls.ErrorTypes.NETWORK_ERROR) { try{hls.startLoad();}catch(err){} return; }
+      if (data.type===Hls.ErrorTypes.MEDIA_ERROR)   { try{hls.recoverMediaError();}catch(err){} return; }
+      setStatus('errorStream', true); setTimeout(() => init(), 5000);
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src=proxied; setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
+    video.play()
+      .then(() => { unmuteBtn.style.display=audioOnly?'none':'block'; setupMediaSession(); if(!isIOS())requestWakeLock(); })
+      .catch(() => setStatus('pressPlay'));
+  }
+
+  // Авторефреш токена каждые 20 минут (iptv-bg.com токены истекают)
+  tokenRefreshTimer = setInterval(async () => {
+    if (!currentCh) return;
+    try {
+      const r = await fetch(currentCh.stream + '&t=' + Date.now(), { cache:'no-store' });
+      const d = await r.json();
+      if (d.url) {
+        const np = currentCh.proxy + encodeURIComponent(d.url);
+        if (hls) hls.loadSource(np);
+        if (hlsAudio) hlsAudio.loadSource(np);
+      }
+    } catch(e) {}
+  }, 20 * 60 * 1000);
+}
+
+async function init() {
+  if (!currentCh) return;
+  setStatus('loading'); reloadBtn.style.display='none'; unmuteBtn.style.display='none';
+  try {
+    const r = await fetch(currentCh.stream + '&t=' + Date.now(), { cache:'no-store' });
+    const d = await r.json();
+    if (d.url) loadStream(d.url); else setStatus('errorUrl', true);
+  } catch(e) { setStatus('errorServer', true); }
+}
+
+// ── Кнопки ─────────────────────────────────────────────────────────────────
+reloadBtn.onclick = () => { userPaused=false; init(); };
+unmuteBtn.onclick = () => {
+  const ab = document.getElementById('audio-bg');
+  if (video.muted) {
+    video.muted=false; video.volume=1; userUnmuted=true;
+    unmuteBtn.textContent = '🔇 '+t.mute;
+    if (ab) { ab.muted=true; ab.pause(); }
+  } else {
+    video.muted=true; userUnmuted=false;
+    unmuteBtn.textContent = '🔊 '+t.unmute;
+    if (ab && isIOS()) { ab.muted=false; ab.volume=0; ab.play().catch(()=>{}); }
+  }
+};
+modeBtn.onclick = () => setAudioMode(!audioOnly);
+
+// ── Хаб ───────────────────────────────────────────────────────────────────
+function buildHub() {
+  channelsGrid.innerHTML = '';
+  CHANNELS.forEach(ch => {
+    const card = document.createElement('div');
+    card.className = 'channel-card';
+    card.style.setProperty('--ch-color', ch.color);
+    card.innerHTML = `
+      <div class="ch-icon" style="background:${ch.iconBg};color:${ch.color}">${ch.icon}</div>
+      <div class="ch-info">
+        <div class="ch-name">${ch.name}</div>
+        <div class="ch-desc">${ch.desc}</div>
+      </div>
+      <div class="live-dot"></div>`;
+    card.onclick = () => openChannel(ch);
+    channelsGrid.appendChild(card);
+  });
+}
+
+function openChannel(ch) {
+  currentCh = ch;
+  hubScreen.style.display = 'none';
+  playerScreen.style.display = 'flex';
+  chTitle.textContent = ch.name;
+  liveBadgeTop.style.background = ch.color;
+  liveBadge.style.background = ch.color.replace(')', ', .9)').replace('rgb', 'rgba');
+  audioOnly = false; document.body.classList.remove('audio-only');
+  modeBtn.textContent = t.audioMode;
+  stopStream(); init();
+}
+
+function goToHub() {
+  stopStream();
+  playerScreen.style.display = 'none';
+  hubScreen.style.display = 'flex';
+  currentCh = null;
+}
+
+// Кнопка назад — в хаб (много каналов, не закрываем приложение)
+backBtn.onclick = () => goToHub();
+
+buildHub();
 </script>
 </body>
 </html>

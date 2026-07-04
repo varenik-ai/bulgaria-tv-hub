@@ -134,24 +134,97 @@ bot.onText(/\/start/, (msg) => {
 bot.onText(/\/post/, async (msg) => {
   try {
     const post = await bot.sendMessage(CHANNEL,
-`🇧🇬 БЪЛГАРСКА ТЕЛЕВИЗИЯ — НА ЖИВО 🔴
+`🇧🇬 *BULGARIAN TV LIVE — 60+ КАНАЛА НА ЖИВО* 🔴
 
-Гледайте всички водещи български канали директно в Telegram — безплатно и без регистрация.
+Гледайте всички водещи *български телевизионни канали* директно в Telegram — *безплатно, без регистрация, 24/7.*
 
-📺 Nova TV — развлечения и новини
-🎬 Kino Nova — филми и сериали 24/7
-📡 bTV — новини и забавления
+━━━━━━━━━━━━━━━━━━━━
+📡 *НОВИНИ И ОБЩИ*
+▪️ bTV · Nova TV · БНТ 1 · БНТ 2 · БНТ 3 · БНТ 4
+▪️ Bulgaria On Air · Nova News · Канал 3
+▪️ Euronews · Bloomberg TV · СКАТ · Евроком
 
-✅ HD качество 24/7
-✅ Без абонамент
-✅ iOS, Android и Desktop
-✅ На 8 езика
+⚽ *СПОРТ*
+▪️ Nova Sport · Diema Sport 1/2/3
+▪️ Max Sport 1/2/3/4 · Eurosport 1/2
 
-👇 Натиснете бутона и изберете канал:`,
+🎬 *ФИЛМИ И РАЗВЛЕЧЕНИЯ*
+▪️ Kino Nova · Diema · Diema Family · Ring BG
+▪️ bTV Cinema · bTV Action · bTV Comedy · bTV Story
+▪️ AXN · Star Channel · Epic Drama · TLC
+▪️ Discovery · Nat Geo · Viasat Explore
+
+👶 *ДЕТСКИ*
+▪️ Cartoon Network · Disney Channel
+▪️ Nickelodeon · Nick Jr · E Kids
+
+🎵 *МУЗИКА*
+▪️ Планета HD · Планета Фолк · The Voice · Folklor TV
+━━━━━━━━━━━━━━━━━━━━
+
+✅ HD качество
+✅ iOS · Android · Desktop
+✅ Без абонамент, без реклама
+✅ На 8 езика — BG, RU, EN, DE, FR, UK, TR, ES
+
+👇 *Натиснете бутона, изберете канал и гледайте:*`,
       {
+        parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [[
-            { text: '📺 Bulgarian TV Live', url: APP_URL }
+            { text: '📺 Отвори Bulgaria TV Live', url: APP_URL }
+          ]]
+        }
+      }
+    );
+    await bot.pinChatMessage(CHANNEL, post.message_id);
+    bot.sendMessage(msg.chat.id, '✅ Пост изпратен и закачен!');
+  } catch(e) {
+    bot.sendMessage(msg.chat.id, '❌ Грешка: ' + e.message);
+  }
+});
+
+// /post_ru — русскоязычный пост для привлечения подписчиков
+bot.onText(/\/post_ru/, async (msg) => {
+  try {
+    const post = await bot.sendMessage(CHANNEL,
+`🇧🇬 *60+ БОЛГАРСКИХ КАНАЛОВ ПРЯМО В TELEGRAM* 🔴
+
+Смотрите *все ведущие болгарские телеканалы* бесплатно, без регистрации, 24/7.
+
+━━━━━━━━━━━━━━━━━━━━
+📡 *НОВОСТИ И ОБЩИЕ*
+▪️ bTV · Nova TV · БНТ 1 · БНТ 2 · БНТ 3 · БНТ 4
+▪️ Bulgaria On Air · Nova News · Канал 3
+▪️ Euronews · Bloomberg TV
+
+⚽ *СПОРТ*
+▪️ Nova Sport · Diema Sport 1/2/3
+▪️ Max Sport 1/2/3/4 · Eurosport 1/2
+
+🎬 *ФИЛЬМЫ И РАЗВЛЕЧЕНИЯ*
+▪️ Kino Nova · Diema · bTV Cinema · bTV Action
+▪️ bTV Comedy · bTV Story · AXN · Star Channel
+▪️ Discovery · Nat Geo · TLC · Travel Channel
+
+👶 *ДЕТСКИЕ*
+▪️ Cartoon Network · Disney · Nickelodeon · Nick Jr
+
+🎵 *МУЗЫКА*
+▪️ Планета · Планета Фолк · The Voice · Folklor TV
+━━━━━━━━━━━━━━━━━━━━
+
+✅ HD качество 24/7
+✅ iOS, Android, Desktop
+✅ Без подписки и рекламы
+✅ Интерфейс на 8 языках
+
+👇 *Нажмите кнопку и выберите канал:*`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '📺 Открыть Bulgaria TV Live', url: APP_URL }
           ]]
         }
       }

@@ -12,21 +12,103 @@ bot.onText(/\/start/, (msg) => {
   const lang = (msg.from.language_code || 'en').split('-')[0];
 
   const greetings = {
-    ru: `🇧🇬 Привет, ${name}!\n\nВсе болгарские каналы в одном месте — бесплатно, без регистрации.`,
-    bg: `🇧 Здравейте, ${name}!\n\nВсички български канали на едно място — безплатно, без регистрация.`,
-    en: `🇧🇬 Hello, ${name}!\n\nAll Bulgarian TV channels in one place — free, no registration.`,
-    de: `🇧🇬 Hallo, ${name}!\n\nAlle bulgarischen TV-Sender an einem Ort — kostenlos.`,
-    fr: `🇧🇬 Bonjour, ${name}!\n\nToutes les chaînes bulgares au même endroit — gratuit.`,
-    uk: `🇧🇬 Привіт, ${name}!\n\nУсі болгарські канали в одному місці — безкоштовно.`,
+    ru: `🇧🇬 Привет, ${name}! Добро пожаловать в *Bulgaria TV Live*
+
+📺 *60+ болгарских каналов прямо в Telegram* — бесплатно, без регистрации, 24/7.
+
+🔴 *Самые популярные:*
+▪️ bTV, Nova TV, БНТ 1/2/3/4
+▪️ Nova Sport, Diema Sport 1/2/3, Eurosport 1/2, Max Sport 1/2/3/4
+▪️ Kino Nova, Diema, bTV Cinema, AXN, Star Channel
+▪️ bTV Comedy, bTV Action, bTV Story, Ring BG
+▪️ Bulgaria On Air, Nova News, Euronews, Bloomberg
+▪️ Cartoon Network, Disney Channel, Nickelodeon
+▪️ Планета, Планета Фолк, The Voice, Folklor TV
+▪️ Discovery, Nat Geo, TLC, Travel Channel и другие
+
+✅ HD качество · iOS, Android, Desktop · 8 языков`,
+
+    bg: `🇧🇬 Здравейте, ${name}! Добре дошли в *Bulgaria TV Live*
+
+📺 *60+ български канала директно в Telegram* — безплатно, без регистрация, 24/7.
+
+🔴 *Най-популярните канали:*
+▪️ bTV, Nova TV, БНТ 1/2/3/4
+▪️ Nova Sport, Diema Sport 1/2/3, Eurosport 1/2, Max Sport 1/2/3/4
+▪️ Kino Nova, Diema, bTV Cinema, AXN, Star Channel
+▪️ bTV Comedy, bTV Action, bTV Story, Ring BG
+▪️ Bulgaria On Air, Nova News, Euronews, Bloomberg
+▪️ Cartoon Network, Disney Channel, Nickelodeon
+▪️ Планета, Планета Фолк, The Voice, Folklor TV
+▪️ Discovery, Nat Geo, TLC, Travel Channel и още
+
+✅ HD качество · iOS, Android, Desktop · 8 езика`,
+
+    en: `🇧🇬 Hello, ${name}! Welcome to *Bulgaria TV Live*
+
+📺 *60+ Bulgarian TV channels right in Telegram* — free, no registration, 24/7.
+
+🔴 *Most popular channels:*
+▪️ bTV, Nova TV, BNT 1/2/3/4
+▪️ Nova Sport, Diema Sport 1/2/3, Eurosport 1/2, Max Sport 1/2/3/4
+▪️ Kino Nova, Diema, bTV Cinema, AXN, Star Channel
+▪️ bTV Comedy, bTV Action, bTV Story, Ring BG
+▪️ Bulgaria On Air, Nova News, Euronews, Bloomberg
+▪️ Cartoon Network, Disney Channel, Nickelodeon
+▪️ Planeta, Planeta Folk, The Voice, Folklor TV
+▪️ Discovery, Nat Geo, TLC, Travel Channel & more
+
+✅ HD quality · iOS, Android, Desktop · 8 languages`,
+
+    de: `🇧🇬 Hallo, ${name}! Willkommen bei *Bulgaria TV Live*
+
+📺 *60+ bulgarische Sender direkt in Telegram* — kostenlos, ohne Anmeldung, 24/7.
+
+🔴 *Beliebteste Sender:*
+▪️ bTV, Nova TV, BNT 1/2/3/4
+▪️ Nova Sport, Diema Sport, Eurosport 1/2, Max Sport 1–4
+▪️ Kino Nova, Diema, bTV Cinema, AXN, Star Channel
+▪️ bTV Comedy, bTV Action, Bulgaria On Air, Nova News
+▪️ Cartoon Network, Disney Channel, Discovery, Nat Geo
+
+✅ HD-Qualität · iOS, Android, Desktop · 8 Sprachen`,
+
+    fr: `🇧🇬 Bonjour, ${name}! Bienvenue sur *Bulgaria TV Live*
+
+📺 *60+ chaînes bulgares directement dans Telegram* — gratuit, sans inscription, 24/7.
+
+🔴 *Chaînes les plus populaires:*
+▪️ bTV, Nova TV, BNT 1/2/3/4
+▪️ Nova Sport, Diema Sport, Eurosport 1/2, Max Sport 1–4
+▪️ Kino Nova, Diema, bTV Cinema, AXN, Star Channel
+▪️ bTV Comedy, Bulgaria On Air, Nova News, Euronews
+▪️ Cartoon Network, Disney Channel, Discovery, Nat Geo
+
+✅ Qualité HD · iOS, Android, Desktop · 8 langues`,
+
+    uk: `🇧🇬 Привіт, ${name}! Ласкаво просимо до *Bulgaria TV Live*
+
+📺 *60+ болгарських каналів прямо в Telegram* — безкоштовно, без реєстрації, 24/7.
+
+🔴 *Найпопулярніші канали:*
+▪️ bTV, Nova TV, БНТ 1/2/3/4
+▪️ Nova Sport, Diema Sport 1/2/3, Eurosport 1/2, Max Sport 1/2/3/4
+▪️ Kino Nova, Diema, bTV Cinema, AXN, Star Channel
+▪️ bTV Comedy, bTV Action, bTV Story, Ring BG
+▪️ Bulgaria On Air, Nova News, Euronews, Bloomberg
+▪️ Cartoon Network, Disney Channel, Nickelodeon
+▪️ Планета, The Voice, Discovery, Nat Geo та інші
+
+✅ HD якість · iOS, Android, Desktop · 8 мов`,
   };
 
   const btnWatch = {
-    ru: '📺 Все болгарские каналы',
-    bg: '📺 Всички български канали',
-    en: '📺 All Bulgarian channels',
-    de: '📺 Alle bulgarischen Sender',
-    fr: '📺 Toutes les chaînes bulgares',
-    uk: '📺 Всі болгарські канали',
+    ru: '📺 Открыть Bulgaria TV Live',
+    bg: '📺 Отвори Bulgaria TV Live',
+    en: '📺 Open Bulgaria TV Live',
+    de: '📺 Bulgaria TV Live öffnen',
+    fr: '📺 Ouvrir Bulgaria TV Live',
+    uk: '📺 Відкрити Bulgaria TV Live',
   };
 
   const btnBrowser = {
@@ -39,6 +121,7 @@ bot.onText(/\/start/, (msg) => {
   };
 
   bot.sendMessage(msg.chat.id, greetings[lang] || greetings.en, {
+    parse_mode: 'Markdown',
     reply_markup: {
       inline_keyboard: [
         [{ text: btnWatch[lang]   || btnWatch.en,   web_app: { url: WEB_URL } }],

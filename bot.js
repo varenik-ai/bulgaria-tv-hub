@@ -3,7 +3,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const TOKEN   = '8906641741:AAFz2gkHwGaltD1XRVppAdhc1yZpkSkVifo';
 const CHANNEL = '@BulgariaTV_Live';
 const APP_URL = 'https://t.me/BulgariaTV_Live_bot/bulgariatv_live_bot';
-const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=3';
+const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=4';
 
 const bot = new TelegramBot(TOKEN, { polling: { interval: 2000, autoStart: true, params: { timeout: 10 } } });
 

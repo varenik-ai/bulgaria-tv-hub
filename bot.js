@@ -164,8 +164,6 @@ bot.onText(/\/post/, async (msg) => {
 
 ✅ HD качество
 ✅ iOS · Android · Desktop
-✅ Без абонамент, без реклама
-✅ На 8 езика — BG, RU, EN, DE, FR, UK, TR, ES
 
 👇 *Натиснете бутона, изберете канал и гледайте:*`,
       {

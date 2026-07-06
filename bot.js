@@ -131,7 +131,7 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
-bot.onText(/\/post/, async (msg) => {
+bot.onText(/^\/post$/, async (msg) => {
   try {
     const post = await bot.sendMessage(CHANNEL,
 `🇧🇬 *BULGARIAN TV LIVE — 60+ КАНАЛА НА ЖИВО* 🔴

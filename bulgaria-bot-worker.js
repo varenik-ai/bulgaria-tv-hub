@@ -6,7 +6,7 @@
 const TOKEN   = '8906641741:AAFz2gkHwGaltD1XRVppAdhc1yZpkSkVifo';
 const CHANNEL = '@BulgariaTV_Live';
 const APP_URL = 'https://t.me/BulgariaTV_Live_bot/bulgariatv_live_bot';
-const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=5';
+const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=6';
 const API = `https://api.telegram.org/bot${TOKEN}`;
 
 const greetings = {

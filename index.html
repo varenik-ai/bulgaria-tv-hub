@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>България ТВ</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FHRPMSKN2Y"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-FHRPMSKN2Y');
+  </script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
@@ -227,6 +234,13 @@ function getLang() {
   const b=(navigator.language||'en').split('-')[0].toLowerCase(); return T[b]?b:'en';
 }
 const t = T[getLang()];
+
+// ── GA4 аналитика ──────────────────────────────────────────────────────────
+function gaEvent(name, params) {
+  try { gtag('event', name, params); } catch(e) {}
+}
+// Трекинг открытия мини-апп + язык пользователя
+gaEvent('miniapp_open', { user_language: getLang() });
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const hubScreen    = document.getElementById('hub-screen');
@@ -521,6 +535,7 @@ function buildHub() {
 }
 
 function openChannel(ch) {
+  gaEvent('channel_open', { channel_id: ch.id, channel_name: ch.name });
   currentCh = ch;
   hubScreen.style.display = 'none';
   playerScreen.style.display = 'flex';

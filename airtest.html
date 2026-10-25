@@ -68,5 +68,33 @@ V.forEach(function (it) {
   box.appendChild(b);
 });
 </script>
+<h1 style="margin-top:22px">Тест скорости до серверов</h1>
+<p><b>Выключи VPN на телефоне</b> (Wi-Fi дома, тот же, что у ТВ) и нажми кнопку. Тест скачивает по одному сегменту (около 1 МБ) с каждого сервера и показывает время. Если сервер «завис», значит, ваш провайдер его не пропускает без VPN.</p>
+<button id="speedBtn" style="text-align:center;background:#1565c0">Запустить тест скорости</button>
+<div id="speed" style="margin-top:8px;font:12px/1.5 ui-monospace,monospace;color:#f9d27f;white-space:pre-wrap"></div>
+<script>
+(function () {
+  var W = 'https://bulgaria-worker.dyaltd.workers.dev', R = 'https://russia-worker.dyaltd.workers.dev', P = 'https://varenik-ai.github.io/bulgaria-tv-hub/airtest/orig/s1.ts';
+  var out = document.getElementById('speed');
+  function b64(u) { return btoa(u).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function firstUri(txt) { return txt.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l && l[0] !== '#'; })[0]; }
+  function get(url, label) {
+    var t0 = performance.now(), ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 20000);
+    return fetch(url, { signal: ctl.signal, cache: 'no-store' }).then(function (r) { return r.arrayBuffer().then(function (b) { return [r.status, b.byteLength]; }); })
+      .then(function (x) { clearTimeout(timer); var s = (performance.now() - t0) / 1000; out.textContent += label + ': ' + x[0] + ', ' + Math.round(x[1] / 1024) + ' КБ за ' + s.toFixed(1) + ' с (' + (x[1] * 8 / s / 1e6).toFixed(1) + ' Мбит/с)\n'; })
+      .catch(function (e) { clearTimeout(timer); out.textContent += label + ': ОШИБКА/ЗАВИС (' + (performance.now() - t0 > 19000 ? '20 с без ответа' : e.name) + ')\n'; });
+  }
+  document.getElementById('speedBtn').onclick = function () {
+    out.textContent = 'Идёт тест, ~1 минута...\n';
+    var seq = Promise.resolve();
+    seq = seq.then(function () { return get(P, '1. GitHub Pages (работает на ТВ)'); });
+    seq = seq.then(function () { return get(W + '/ts/' + b64(P) + '.ts', '2. Мой воркер (сегмент Pages)'); });
+    seq = seq.then(function () { return get('https://bg-relay-test.dyaltd.workers.dev/ts/' + b64(P) + '.ts', '3. Тестовый воркер'); });
+    seq = seq.then(function () { return fetch(W + '/airtest?channel=btv&mode=vod540').then(function (r) { return r.text(); }).then(function (m) { return get(firstUri(m.split('#EXT-X-MEDIA-SEQUENCE:0')[1] || m), '4. glebul напрямую (bTV)'); }); });
+    seq = seq.then(function () { return fetch(R + '/stream?channel=rossiya1&native=1').then(function (r) { return r.text(); }).then(function (m) { return fetch(firstUri(m)).then(function (r) { return r.text(); }); }).then(function (m) { return get(firstUri(m), '5. smotrim напрямую (сегмент эталона)'); }); });
+    seq.then(function () { out.textContent += 'Готово. Пришли этот текст.'; });
+  };
+})();
+</script>
 </body>
 </html>

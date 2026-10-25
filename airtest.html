@@ -40,6 +40,9 @@ var V = [
   ['J', 'ТЕСТ J: те же сегменты, но порядок данных исправлен (удалено служебное SEI)', 'airtest/fixed/index.m3u8'],
   ['K', 'ТЕСТ K: снимок эфира bTV 540p как VOD, сегменты прямо с glebul', W + '/airtest?channel=btv&mode=vod540'],
   ['L', 'ТЕСТ L: тот же снимок как VOD, сегменты через воркер', W + '/airtest?channel=btv&mode=vod540proxy'],
+  ['M', 'ТЕСТ M: те же рабочие сегменты I, но выданные через воркер (/proxy)', W + '/airtest?channel=btv&mode=origproxy'],
+  ['N', 'ТЕСТ N: те же рабочие сегменты I через воркер, адрес сегмента заканчивается на .ts', W + '/airtest?channel=btv&mode=origts'],
+  ['O', 'ТЕСТ O: снимок эфира bTV 540p, сегменты с glebul через воркер, адрес на .ts', W + '/airtest?channel=btv&mode=vod540ts'],
   ['F', 'Bulgaria F: прямая ссылка источника (как в v15)', 'DIRECT']
 ];
 var v = document.getElementById('v'), log = document.getElementById('log'), box = document.getElementById('btns'), cur = null;

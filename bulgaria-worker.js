@@ -5,7 +5,7 @@ const CORS = {
 };
 
 // Хосты, которые разрешено проксировать (иначе /proxy — открытый прокси)
-const ALLOWED_HOSTS = ['glebul.com', 'kupuvamsamo.online'];
+const ALLOWED_HOSTS = ['glebul.com', 'kupuvamsamo.online', 'varenik-ai.github.io'];  // github.io: временно, для airtest
 function isAllowedHost(u) {
   try {
     const h = new URL(u).hostname;
@@ -122,7 +122,7 @@ async function getStreamUrl(slug) {
 }
 
 // Проксирует плейлист/сегмент источника; в m3u8 переписывает адреса на воркер (нужно ТВ по AirPlay: телевизор сам ходит за потоком)
-async function proxyFetch(targetUrl, opts) {
+async function proxyFetch(targetUrl, opts, req) {
   opts = opts || {};
   const referer = 'https://www.seirsanduk.online/';
   try {
@@ -131,6 +131,7 @@ async function proxyFetch(targetUrl, opts) {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Referer':    referer,
         'Origin':     new URL(referer).origin,
+        ...(req && req.headers.get('range') ? { 'Range': req.headers.get('range') } : {}),
       },
       cf: { cacheEverything: false },
     });
@@ -154,6 +155,8 @@ async function proxyFetch(targetUrl, opts) {
     }
     const body = await r.arrayBuffer();
     hdrs.set('Content-Type', ct || 'video/mp2t');
+    hdrs.set('Accept-Ranges', 'bytes');
+    if (r.headers.get('content-range')) hdrs.set('Content-Range', r.headers.get('content-range'));
     return new Response(body, { status: r.status, headers: hdrs });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), {
@@ -203,7 +206,17 @@ export default {
       const referer = 'https://www.seirsanduk.online/';
       if (!targetUrl) return new Response('No URL', { status: 400, headers: CORS });
       if (!isAllowedHost(targetUrl)) return new Response('Forbidden host', { status: 403, headers: CORS });
-      return proxyFetch(targetUrl, { segDirect: url.searchParams.get('seg') === 'direct' });
+      return proxyFetch(targetUrl, { segDirect: url.searchParams.get('seg') === 'direct' }, request);
+    }
+
+    // /ts/<base64url адреса>.ts — то же, что /proxy, но адрес сегмента заканчивается на .ts (для ТВ, которым важно расширение)
+    if (url.pathname.startsWith('/ts/')) {
+      try {
+        const b64 = url.pathname.slice(4).replace(/\.ts$/, '').replace(/-/g, '+').replace(/_/g, '/');
+        const target = atob(b64 + '==='.slice((b64.length + 3) % 4));
+        if (!isAllowedHost(target)) return new Response('Forbidden host', { status: 403, headers: CORS });
+        return proxyFetch(target, {}, request);
+      } catch (e) { return new Response('bad path', { status: 400, headers: CORS }); }
     }
 
     // /airtest?channel=X&mode=... — диагностика AirPlay на ТВ: разные варианты одного потока (см. airtest.html)
@@ -233,8 +246,16 @@ export default {
         }).join('\n');
         return new Response(out, { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
       }
+      const tsUrl = a => WORKER_BASE + '/ts/' + btoa(a).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') + '.ts';
+      if (mode === 'origproxy' || mode === 'origts') {
+        const P = 'https://varenik-ai.github.io/bulgaria-tv-hub/airtest/orig/';
+        const out = ['#EXTM3U', '#EXT-X-VERSION:3', '#EXT-X-TARGETDURATION:6', '#EXT-X-MEDIA-SEQUENCE:0', '#EXT-X-PLAYLIST-TYPE:VOD'];
+        [1, 2, 3, 4].forEach(i => { out.push('#EXTINF:6.000,'); out.push(mode === 'origts' ? tsUrl(P + 's' + i + '.ts') : WORKER_BASE + '/proxy?url=' + encodeURIComponent(P + 's' + i + '.ts')); });
+        out.push('#EXT-X-ENDLIST');
+        return new Response(out.join('\n') + '\n', { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
+      }
       // vod540 / vod540proxy: снимок живого плейлиста 540p, превращённый в VOD (ENDLIST); сегменты прямые или через воркер
-      if (mode === 'vod540' || mode === 'vod540proxy') {
+      if (mode === 'vod540' || mode === 'vod540proxy' || mode === 'vod540ts') {
         const sub = master.split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#') && l.indexOf('_mid/') >= 0);
         const media = await (await fetch(abs(sub), { headers: H })).text();
         const mbase = abs(sub).substring(0, abs(sub).lastIndexOf('/') + 1);
@@ -243,7 +264,7 @@ export default {
           if (t.startsWith('#EXTINF')) out.push(t);
           else if (t && !t.startsWith('#')) {
             const a = t.startsWith('http') ? t : mbase + t;
-            out.push(mode === 'vod540' ? a : WORKER_BASE + '/proxy?url=' + encodeURIComponent(a));
+            out.push(mode === 'vod540' ? a : mode === 'vod540ts' ? tsUrl(a) : WORKER_BASE + '/proxy?url=' + encodeURIComponent(a));
           }
         });
         out.push('#EXT-X-ENDLIST');
@@ -261,7 +282,7 @@ export default {
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v11-airtest', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v12-airtest', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

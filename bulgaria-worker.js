@@ -121,6 +121,44 @@ async function getStreamUrl(slug) {
   return streamUrl;
 }
 
+// Проксирует плейлист/сегмент источника; в m3u8 переписывает адреса на воркер (нужно ТВ по AirPlay: телевизор сам ходит за потоком)
+async function proxyFetch(targetUrl) {
+  const referer = 'https://www.seirsanduk.online/';
+  try {
+    const r = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer':    referer,
+        'Origin':     new URL(referer).origin,
+      },
+      cf: { cacheEverything: false },
+    });
+    const hdrs = new Headers(CORS);
+    hdrs.set('Cache-Control', 'no-store');
+    const ct = r.headers.get('content-type') || '';
+    const isM3u8 = targetUrl.includes('.m3u8') || ct.includes('mpegurl');
+    if (isM3u8 && r.ok) {
+      const m3u8 = await r.text();
+      const baseDir = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
+      const rewritten = m3u8.split('\n').map(line => {
+        const t = line.trim();
+        if (!t || t.startsWith('#')) return line;
+        const abs = t.startsWith('http') ? t : baseDir + t;
+        return WORKER_BASE + '/proxy?url=' + encodeURIComponent(abs);
+      }).join('\n');
+      hdrs.set('Content-Type', 'application/vnd.apple.mpegurl');
+      return new Response(rewritten, { status: r.status, headers: hdrs });
+    }
+    const body = await r.arrayBuffer();
+    hdrs.set('Content-Type', ct || 'video/mp2t');
+    return new Response(body, { status: r.status, headers: hdrs });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -139,6 +177,8 @@ export default {
           return new Response(JSON.stringify({ error: 'no_url' }), {
             status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
           });
+        // ?native=1 — для нативного плеера iOS и AirPlay: воркер сам отдаёт m3u8 (и сегменты через /proxy), телевизору нужен только адрес воркера
+        if (url.searchParams.get('native') === '1') return proxyFetch(streamUrl);
         // CDN источника отдаёт CORS (Access-Control-Allow-Origin: *) — отдаём прямую ссылку, плеер грузит сегменты сам.
         // ?proxy=1 — запасной путь через воркер (если прямой не открылся).
         const out = url.searchParams.get('proxy') === '1'
@@ -160,43 +200,11 @@ export default {
       const referer = 'https://www.seirsanduk.online/';
       if (!targetUrl) return new Response('No URL', { status: 400, headers: CORS });
       if (!isAllowedHost(targetUrl)) return new Response('Forbidden host', { status: 403, headers: CORS });
-      try {
-        const r = await fetch(targetUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Referer':    referer,
-            'Origin':     new URL(referer).origin,
-          },
-          cf: { cacheEverything: false },
-        });
-        const hdrs = new Headers(CORS);
-        hdrs.set('Cache-Control', 'no-store');
-        const ct = r.headers.get('content-type') || '';
-        const isM3u8 = targetUrl.includes('.m3u8') || ct.includes('mpegurl');
-        if (isM3u8 && r.ok) {
-          const m3u8 = await r.text();
-          const baseDir = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
-          const rewritten = m3u8.split('\n').map(line => {
-            const t = line.trim();
-            if (!t || t.startsWith('#')) return line;
-            const abs = t.startsWith('http') ? t : baseDir + t;
-            return WORKER_BASE + '/proxy?url=' + encodeURIComponent(abs);
-          }).join('\n');
-          hdrs.set('Content-Type', 'application/vnd.apple.mpegurl');
-          return new Response(rewritten, { status: r.status, headers: hdrs });
-        }
-        const body = await r.arrayBuffer();
-        hdrs.set('Content-Type', ct || 'video/mp2t');
-        return new Response(body, { status: r.status, headers: hdrs });
-      } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), {
-          status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
-        });
-      }
+      return proxyFetch(targetUrl);
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v7-direct', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v8-native', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

@@ -233,6 +233,22 @@ export default {
         }).join('\n');
         return new Response(out, { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
       }
+      // vod540 / vod540proxy: снимок живого плейлиста 540p, превращённый в VOD (ENDLIST); сегменты прямые или через воркер
+      if (mode === 'vod540' || mode === 'vod540proxy') {
+        const sub = master.split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#') && l.indexOf('_mid/') >= 0);
+        const media = await (await fetch(abs(sub), { headers: H })).text();
+        const mbase = abs(sub).substring(0, abs(sub).lastIndexOf('/') + 1);
+        const out = ['#EXTM3U', '#EXT-X-VERSION:3', '#EXT-X-TARGETDURATION:6', '#EXT-X-MEDIA-SEQUENCE:0', '#EXT-X-PLAYLIST-TYPE:VOD'];
+        media.split('\n').map(l => l.trim()).forEach(t => {
+          if (t.startsWith('#EXTINF')) out.push(t);
+          else if (t && !t.startsWith('#')) {
+            const a = t.startsWith('http') ? t : mbase + t;
+            out.push(mode === 'vod540' ? a : WORKER_BASE + '/proxy?url=' + encodeURIComponent(a));
+          }
+        });
+        out.push('#EXT-X-ENDLIST');
+        return new Response(out.join('\n') + '\n', { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
+      }
       // single720 / single720proxy / single540 / single540proxy: один вариант качества; без суффикса proxy сегменты идут прямыми ссылками
       const sm = mode.match(/^single(720|540)(proxy)?$/);
       if (sm) {
@@ -245,7 +261,7 @@ export default {
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v10-airtest', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v11-airtest', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

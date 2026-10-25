@@ -92,7 +92,7 @@
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
   <div class="channels-grid" id="channels-grid"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v14 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333">v15 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -382,13 +382,15 @@ pipBtn.onclick = async () => {
     else if (!isIOS() && video.requestPictureInPicture) { await video.requestPictureInPicture(); pipBtn.textContent='✕ PiP'; }
   } catch(e) {}
 };
-// «На ТВ» внутри Telegram: открываем канал во внешнем браузере (Safari/Chrome), откуда работают AirPlay и Cast
+// Android/Desktop в Telegram: Cast из WebView невозможен — открываем канал во внешнем браузере (Chrome), где работает Cast.
+// На iOS эту задачу выполняет кнопка AirPlay (как в эталоне). Порядок открытия как в эталоне: window.open, запасной путь tg.openLink.
 const tvBtn = document.getElementById('tv-btn');
-if (IN_TG) {
+if (IN_TG && !isIOS()) {
   tvBtn.textContent = t.tv; tvBtn.style.display = '';
   tvBtn.onclick = () => {
     const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
-    try { tg.openLink(url, { try_instant_view: false }); } catch (e) { window.open(url, '_blank'); }
+    const w = window.open(url, '_blank');
+    if (!w) { try { tg.openLink(url, { try_instant_view: false }); } catch (e) {} }
   };
 }
 video.addEventListener('leavepictureinpicture', async () => {
@@ -518,10 +520,10 @@ function initQuality(h) {
 // первое нажатие переключает канал на нативный плеер, второе открывает выбор устройства. Если WebView Telegram
 // не отдаёт AirPlay API — кнопка открывает страницу канала в Safari, где AirPlay есть.
 let _forceNative = false;
-if (!IN_TG && window.WebKitPlaybackTargetAvailabilityEvent) {
+if (isIOS()) {
   const hasAir = !!window.WebKitPlaybackTargetAvailabilityEvent && typeof video.webkitShowPlaybackTargetPicker === 'function';
   const isBlob = () => !video.currentSrc || /^blob:/.test(video.currentSrc);
-  const airVis = () => { airBtn.style.display = (currentCh && hasAir) ? 'block' : 'none'; };
+  const airVis = () => { airBtn.style.display = currentCh ? 'block' : 'none'; };
   if (hasAir) {
     try { video.setAttribute('x-webkit-airplay', 'allow'); video.disableRemotePlayback = false; } catch (e) {}
     video.addEventListener('webkitplaybacktargetavailabilitychanged', (e) => { if (e.availability !== 'available' && !isBlob()) airBtn.style.display = 'none'; else airVis(); });
@@ -529,7 +531,10 @@ if (!IN_TG && window.WebKitPlaybackTargetAvailabilityEvent) {
   ['loadstart', 'playing'].forEach(ev => video.addEventListener(ev, airVis));
   airBtn.onclick = () => {
     if (!hasAir) {
-      return; // нет AirPlay API в этом WebView — кнопка скрыта (см. airVis)
+      const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
+      const w = window.open(url, '_blank');
+      if (!w) { try { tg.openLink(url, { try_instant_view: false }); } catch (e) {} }
+      return;
     }
     if (isBlob()) { _forceNative = true; airBtn.textContent = '📲 AirPlay ▶'; stopStream(); init(); return; }
     try { video.webkitShowPlaybackTargetPicker(); } catch (e) {}
@@ -562,7 +567,7 @@ function loadStream(url) {
   }
 
   video.muted=true;
-  const _native = _forceNative && !!video.canPlayType('application/vnd.apple.mpegurl');
+  const _native = _forceNative && isIOS() && !!video.canPlayType('application/vnd.apple.mpegurl');
   if (Hls.isSupported() && !_native) {
     hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30,
       capLevelToPlayerSize:true, startLevel:0, abrEwmaDefaultEstimate:500000, manifestLoadingMaxRetry:4, fragLoadingRetryDelay:500 });
@@ -737,7 +742,7 @@ function openChannel(ch) {
   liveBadge.style.background = ch.color.replace(')', ', .9)').replace('rgb', 'rgba');
   audioOnly = false; document.body.classList.remove('audio-only');
   modeBtn.textContent = t.audioMode;
-  _soundWanted=false; _resetRetry(); _playedOnce=false; _forceNative=false; airBtn.textContent='📲 AirPlay';
+  _soundWanted=false; _resetRetry(); _playedOnce=false;
   stopStream(); init();
 }
 

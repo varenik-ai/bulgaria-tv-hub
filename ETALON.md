@@ -44,11 +44,11 @@
 - **Звук после реконнекта:** `_soundWanted` ставится кнопкой «Включить звук», `_restoreSound()` вызывается после `play()`; если браузер не дал звук без жеста — через 1,5 с возврат в режим без звука. Смена канала сбрасывает флаг.
 - Пока не перенесено: нативное качество iOS (`/stream-q`), профилактический реконнект (нужен только каналам cinerama.uz, у Bulgaria таких нет).
 
-## Трансляция на ТВ (по CAST_GUIDE.md, Bulgaria v13)
-- **В Telegram видео на ТВ не уходит:** iOS WebView по AirPlay отдаёт только звук, в Android/Desktop WebView Cast недоступен. Поэтому внутри Telegram (`IN_TG = !!tg.initData`) кнопки AirPlay и Cast скрыты, показана «📺 На ТВ»: `tg.openLink(SITE_URL + '#<id канала>')` открывает тот же мини-апп во внешнем Safari/Chrome.
-- **Во внешнем браузере:** Safari (iOS/macOS) — кнопка «📲 AirPlay» в два шага (первое нажатие переводит канал с hls.js/blob на нативный HLS, второе открывает выбор устройства); Chromium — Google Cast (`cast.js`, Default Media Receiver, `loadMedia` с прямой ссылкой на плейлист, метаданные = название и логотип канала).
-- **Во время трансляции:** `window.__castActive` — локальное видео остановлено, `video.play` подменён заглушкой, `loadStream` не поднимает hls.js, а шлёт новый `loadMedia`, сторож зависания отключён. Конец сессии: `stop()` возвращает воспроизведение.
-- **Требования к источнику** (проверено для всех 38 каналов): CORS на плейлисте и сегментах, без привязки к Referer/Cookie. Сегменты через Cloudflare Workers не проксировать.
-- `?castdebug=1` показывает состояние Cast. `<meta name="referrer" content="no-referrer">` добавлен.
-- **Не проверено на реальном ТВ** (AirPlay на Apple TV/Samsung/LG, Cast на Chromecast/Google TV). Проверено в браузере: загрузка Cast SDK, скрытие кнопок в Telegram-режиме, вызов `openLink` с нужным адресом, поведение при трансляции (нет реконнектов, смена канала, восстановление).
-- Страница Cast SDK (gstatic.com) подгружается только вне Telegram: если появится политика конфиденциальности, упомянуть её.
+## Трансляция на ТВ (по эталону russia-tv-hub, Bulgaria v15)
+- **iOS (в том числе внутри Telegram):** блок AirPlay скопирован из эталона 1:1. Кнопка «📲 AirPlay» видна у каждого канала (`airVis` не зависит от наличия AirPlay API). Если API есть: первое нажатие на `blob:`-источнике (hls.js) ставит `_forceNative = true`, текст «📲 AirPlay ▶», канал перезапускается на нативном HLS; следующее нажатие открывает `webkitShowPlaybackTargetPicker()`. Если API нет (WebView Telegram) — страница канала открывается во внешнем Safari: `window.open(SITE_URL + '#<id>')`, запасной путь `tg.openLink`.
+- **`_forceNative` не сбрасывается** при смене канала (как в эталоне), а в `loadStream` условие `_forceNative && isIOS() && canPlayType('application/vnd.apple.mpegurl')`.
+- **Android/Desktop в Telegram** (единственное отличие от эталона): Cast из WebView невозможен, поэтому показана «📺 На ТВ»: `window.open(SITE_URL + '#<id>')` (запасной путь `tg.openLink`) открывает канал во внешнем Chrome. На iOS эта кнопка скрыта, её роль у AirPlay.
+- **Google Cast** (`cast.js`) работает только вне Telegram (Chromium): Default Media Receiver, `loadMedia` с прямой ссылкой на плейлист; во время трансляции локальное видео стоит, сторож зависания отключён (`window.__castActive`). `?castdebug=1` показывает состояние.
+- Кнопки «Смотреть на сайте» нет (решение владельца). `<meta name="referrer" content="no-referrer">` есть.
+- **Не проверено на реальном ТВ.** Проверено подставными окружениями: iOS без AirPlay API, iOS с API (два шага, `_forceNative` сохраняется при смене канала), Android в Telegram.
+- Не перенесено: фиксация качества для нативного iOS (`/stream-q`).

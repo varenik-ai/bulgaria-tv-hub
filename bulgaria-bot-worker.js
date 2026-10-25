@@ -7,7 +7,7 @@
 
 const CHANNEL = '@BulgariaTV_Live';
 const APP_URL = 'https://t.me/BulgariaTV_Live_bot/bulgariatv_live_bot';
-const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=13';
+const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=14';
 
 const greetings = {
   bg: (name) => `🇧🇬 Здравейте, ${name}!

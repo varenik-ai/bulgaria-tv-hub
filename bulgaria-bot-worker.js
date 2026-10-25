@@ -7,112 +7,120 @@
 
 const CHANNEL = '@BulgariaTV_Live';
 const APP_URL = 'https://t.me/BulgariaTV_Live_bot/bulgariatv_live_bot';
-const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=8';
+const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=9';
 
 const greetings = {
-  bg: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  bg: (name) => `🇧🇬 Здравейте, ${name}!
 
-Здравей, ${name}! 👋
-*Цялата българска телевизия — с един тап.*
+📺 *БЪЛГАРИЯ·ТВ — 38 български канала на живо в Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Гледайте българска телевизия онлайн — безплатно, без регистрация, 24/7.
 
-⚡ 60+ канала на живо
-🆓 Безплатно, без регистрация
-🎧 Звук на заден план, PiP, цял екран
+📡 *Новини:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Спорт:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Филми и сериали:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Детски:* Cartoon Network, Disney, Nickelodeon
+🎵 *Музика:* Планета, Планета Фолк, The Voice, Фолклор ТВ
 
-👇 _Натисни бутона и си в ефир_`,
+✅ HD · iOS · Android · Desktop · 8 езика`,
 
-  ru: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  ru: (name) => `🇧🇬 Привет, ${name}!
 
-Привет, ${name}! 👋
-*Всё болгарское ТВ — в один тап.*
+📺 *БЪЛГАРИЯ·ТВ — 38 болгарских каналов в прямом эфире в Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Смотри болгарское телевидение онлайн — бесплатно, без регистрации, 24/7.
 
-⚡ 60+ каналов в прямом эфире
-🆓 Бесплатно, без регистрации
-🎧 Звук в фоне, PiP, полный экран
+📡 *Новости:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Спорт:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Кино и сериалы:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Детские:* Cartoon Network, Disney, Nickelodeon
+🎵 *Музыка:* Планета, Планета Фолк, The Voice, Фолклор ТВ
 
-👇 _Жми кнопку — и ты в эфире_`,
+✅ HD · iOS · Android · Desktop · 8 языков`,
 
-  en: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  en: (name) => `🇧🇬 Hello, ${name}!
 
-Hey, ${name}! 👋
-*All Bulgarian TV — one tap away.*
+📺 *БЪЛГАРИЯ·ТВ — 38 Bulgarian TV channels live on Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Watch Bulgarian television online — free, no registration, 24/7.
 
-⚡ 60+ live channels
-🆓 Free, no sign-up
-🎧 Background audio, PiP, fullscreen
+📡 *News:* bTV, Nova TV, BNT 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Sport:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Movies & series:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Kids:* Cartoon Network, Disney, Nickelodeon
+🎵 *Music:* Planeta, Planeta Folk, The Voice, Folklor TV
 
-👇 _Hit the button and you're on air_`,
+✅ HD · iOS · Android · Desktop · 8 languages`,
 
-  uk: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  uk: (name) => `🇧🇬 Привіт, ${name}!
 
-Привіт, ${name}! 👋
-*Все болгарське ТБ — в один дотик.*
+📺 *БЪЛГАРИЯ·ТВ — 38 болгарських каналів наживо в Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Дивись болгарське телебачення онлайн — безкоштовно, без реєстрації, 24/7.
 
-⚡ 60+ каналів наживо
-🆓 Безкоштовно, без реєстрації
-🎧 Звук у фоні, PiP, повний екран
+📡 *Новини:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Спорт:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Кіно та серіали:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Дитячі:* Cartoon Network, Disney, Nickelodeon
+🎵 *Музика:* Планета, Планета Фолк, The Voice, Фолклор ТВ
 
-👇 _Тисни кнопку — і ти в ефірі_`,
+✅ HD · iOS · Android · Desktop · 8 мов`,
 
-  de: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  de: (name) => `🇧🇬 Hallo, ${name}!
 
-Hey, ${name}! 👋
-*Das ganze bulgarische TV — ein Tipp entfernt.*
+📺 *БЪЛГАРИЯ·ТВ — 38 bulgarische Sender live auf Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Bulgarisches Fernsehen online schauen — kostenlos, ohne Anmeldung, 24/7.
 
-⚡ 60+ Sender live
-🆓 Kostenlos, ohne Anmeldung
-🎧 Hintergrundton, PiP, Vollbild
+📡 *Nachrichten:* bTV, Nova TV, BNT 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Sport:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Filme & Serien:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Kinder:* Cartoon Network, Disney, Nickelodeon
+🎵 *Musik:* Planeta, Planeta Folk, The Voice, Folklor TV
 
-👇 _Button drücken und los geht's_`,
+✅ HD · iOS · Android · Desktop · 8 Sprachen`,
 
-  fr: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  fr: (name) => `🇧🇬 Bonjour, ${name}!
 
-Salut, ${name}! 👋
-*Toute la télé bulgare — en un tap.*
+📺 *БЪЛГАРИЯ·ТВ — 38 chaînes bulgares en direct sur Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Regardez la télévision bulgare en ligne — gratuit, sans inscription, 24/7.
 
-⚡ 60+ chaînes en direct
-🆓 Gratuit, sans inscription
-🎧 Audio en arrière-plan, PiP, plein écran
+📡 *Actualités:* bTV, Nova TV, BNT 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Sport:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Films et séries:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Enfants:* Cartoon Network, Disney, Nickelodeon
+🎵 *Musique:* Planeta, Planeta Folk, The Voice, Folklor TV
 
-👇 _Appuie sur le bouton, c'est parti_`,
+✅ HD · iOS · Android · Desktop · 8 langues`,
 
-  es: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  es: (name) => `🇧🇬 ¡Hola, ${name}!
 
-¡Hola, ${name}! 👋
-*Toda la tele búlgara — a un toque.*
+📺 *БЪЛГАРИЯ·ТВ — 38 canales búlgaros en vivo en Telegram*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Mira la televisión búlgara en línea — gratis, sin registro, 24/7.
 
-⚡ 60+ canales en directo
-🆓 Gratis y sin registro
-🎧 Audio en segundo plano, PiP, pantalla completa
+📡 *Noticias:* bTV, Nova TV, BNT 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Deporte:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Cine y series:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Infantil:* Cartoon Network, Disney, Nickelodeon
+🎵 *Música:* Planeta, Planeta Folk, The Voice, Folklor TV
 
-👇 _Pulsa el botón y ya estás en vivo_`,
+✅ HD · iOS · Android · Desktop · 8 idiomas`,
 
-  tr: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
+  tr: (name) => `🇧🇬 Merhaba, ${name}!
 
-Selam, ${name}! 👋
-*Tüm Bulgar TV — tek dokunuşla.*
+📺 *БЪЛГАРИЯ·ТВ — Telegram'da 38 Bulgar kanalı canlı yayın*
 
-bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
+Bulgar televizyonunu çevrimiçi izleyin — ücretsiz, kayıt gerekmez, 7/24.
 
-⚡ 60+ canlı kanal
-🆓 Ücretsiz, kayıt yok
-🎧 Arka planda ses, PiP, tam ekran
+📡 *Haber:* bTV, Nova TV, BNT 1/2/3/4, Bulgaria On Air, Euronews
+⚽ *Spor:* Nova Sport, Diema Sport, Max Sport, Eurosport
+🎬 *Film ve dizi:* Kino Nova, Diema, bTV Cinema/Action/Comedy, AXN
+👶 *Çocuk:* Cartoon Network, Disney, Nickelodeon
+🎵 *Müzik:* Planeta, Planeta Folk, The Voice, Folklor TV
 
-👇 _Butona dokun, yayındasın_`,
+✅ HD · iOS · Android · Desktop · 8 dil`,
 
 };
 
@@ -127,17 +135,6 @@ const btnWatch = {
   tr: '▶️ Canlı izle',
 };
 
-const btnBrowser = {
-  bg: '🌐 В браузър',
-  ru: '🌐 В браузере',
-  en: '🌐 In browser',
-  uk: '🌐 У браузері',
-  de: '🌐 Im Browser',
-  fr: '🌐 Navigateur',
-  es: '🌐 En el navegador',
-  tr: '🌐 Tarayıcıda',
-};
-
 const btnChannel = {
   bg: '📣 Канал',
   ru: '📣 Канал',
@@ -148,6 +145,19 @@ const btnChannel = {
   es: '📣 Canal',
   tr: '📣 Kanal',
 };
+
+const thanks = {
+  bg: 'Благодарим ви за подкрепата! ⭐ Приятно гледане.',
+  ru: 'Спасибо за поддержку! ⭐ Приятного просмотра.',
+  en: 'Thank you for your support! ⭐ Enjoy watching.',
+  uk: 'Дякуємо за підтримку! ⭐ Приємного перегляду.',
+  de: 'Danke für deine Unterstützung! ⭐ Viel Spaß beim Schauen.',
+  fr: 'Merci pour votre soutien ! ⭐ Bon visionnage.',
+  es: '¡Gracias por tu apoyo! ⭐ Disfruta viendo.',
+  tr: 'Desteğiniz için teşekkürler! ⭐ İyi seyirler.',
+};
+
+const DONATE_AMOUNTS = [25, 50, 100, 250];
 
 const POST_TEXT = `🇧🇬 *BULGARIAN TV LIVE — 60+ КАНАЛА НА ЖИВО* 🔴
 
@@ -212,6 +222,26 @@ async function handleRequest(request, env) {
     return new Response(JSON.stringify(r), { headers: { 'Content-Type': 'application/json' } });
   }
 
+  // /invoice?amount=50 — ссылка на оплату Telegram Stars (⭐) для мини-аппа: tg.openInvoice(url)
+  if (url.pathname === '/invoice') {
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
+    const amount = parseInt(url.searchParams.get('amount'), 10);
+    if (!DONATE_AMOUNTS.includes(amount)) {
+      return new Response(JSON.stringify({ error: 'bad amount' }), { status: 400, headers: cors });
+    }
+    const r = await tg(env, 'createInvoiceLink', {
+      title: 'Bulgaria TV ⭐',
+      description: 'Благодарность за Bulgaria TV Live',
+      payload: 'donate_' + amount,
+      provider_token: '',
+      currency: 'XTR',
+      prices: [{ label: 'Bulgaria TV', amount }],
+    });
+    return new Response(JSON.stringify(r.ok ? { url: r.result } : { error: r.description }), {
+      status: r.ok ? 200 : 502, headers: cors,
+    });
+  }
+
   if (request.method !== 'POST') {
     return new Response('Bulgaria TV Bot Worker OK');
   }
@@ -223,7 +253,18 @@ async function handleRequest(request, env) {
     return new Response('bad request', { status: 400 });
   }
 
+  // Stars: обязательно подтвердить pre_checkout за 10 секунд
+  if (update.pre_checkout_query) {
+    await tg(env, 'answerPreCheckoutQuery', { pre_checkout_query_id: update.pre_checkout_query.id, ok: true });
+    return new Response('ok');
+  }
+
   const msg = update.message;
+  if (msg && msg.successful_payment) {
+    const lang = (msg.from.language_code || 'bg').split('-')[0];
+    await tg(env, 'sendMessage', { chat_id: msg.chat.id, text: thanks[lang] || thanks.bg });
+    return new Response('ok');
+  }
   if (!msg || !msg.text) return new Response('ok');
   const text = msg.text.trim();
 
@@ -238,10 +279,7 @@ async function handleRequest(request, env) {
       reply_markup: {
         inline_keyboard: [
           [{ text: btnWatch[lang] || btnWatch.bg, web_app: { url: WEB_URL } }],
-          [
-            { text: btnBrowser[lang] || btnBrowser.bg, url: WEB_URL },
-            { text: btnChannel[lang] || btnChannel.bg, url: 'https://t.me/BulgariaTV_Live' },
-          ],
+          [{ text: btnChannel[lang] || btnChannel.bg, url: 'https://t.me/BulgariaTV_Live' }],
         ],
       },
     });
@@ -254,7 +292,7 @@ async function handleRequest(request, env) {
         chat_id: CHANNEL,
         text: POST_TEXT,
         parse_mode: 'Markdown',
-        reply_markup: { inline_keyboard: [[{ text: '📺 Отвори Bulgaria TV Live', url: APP_URL }]] },
+        reply_markup: { inline_keyboard: [[{ text: '📺 Отвори Bulgaria TV Live', url: APP_URL }], [{ text: '⭐ Благодаря', url: APP_URL + '?startapp=donate' }]] },
       });
       if (post.ok) {
         await tg(env, 'pinChatMessage', { chat_id: CHANNEL, message_id: post.result.message_id });
@@ -301,7 +339,7 @@ async function handleRequest(request, env) {
         chat_id: CHANNEL,
         text: postRu,
         parse_mode: 'Markdown',
-        reply_markup: { inline_keyboard: [[{ text: '📺 Открыть Bulgaria TV Live', url: APP_URL }]] },
+        reply_markup: { inline_keyboard: [[{ text: '📺 Открыть Bulgaria TV Live', url: APP_URL }], [{ text: '⭐ Поблагодарить', url: APP_URL + '?startapp=donate' }]] },
       });
       if (post.ok) {
         await tg(env, 'pinChatMessage', { chat_id: CHANNEL, message_id: post.result.message_id });

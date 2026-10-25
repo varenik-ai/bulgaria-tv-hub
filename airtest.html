@@ -18,8 +18,8 @@
 </head>
 <body>
 <h1>Тест AirPlay на ТВ</h1>
-<p>Открой в Safari. Нажми вариант, дождись картинки на телефоне, затем значок AirPlay в панели видео и выбери ТВ. Запиши, какие варианты пошли на ТВ.</p>
-<video id="v" controls playsinline x-webkit-airplay="allow" muted></video>
+<p><b>Версия 2: видео БЕЗ mute (как на сайте эталона).</b> Открой в Safari. Нажми вариант, дождись картинки на телефоне, затем значок AirPlay в панели видео и выбери ТВ. Запиши, какие варианты пошли на ТВ.</p>
+<video id="v" controls playsinline webkit-playsinline x-webkit-airplay="allow"></video>
 <div id="btns"></div>
 <div id="log"></div>
 <script>
@@ -48,7 +48,7 @@ V.forEach(function (it) {
   var b = document.createElement('button'); b.textContent = it[0] + ' — ' + it[1];
   b.onclick = function () {
     document.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
-    cur = it[0]; log.textContent = 'Вариант ' + it[0] + '\n';
+    cur = it[0]; log.textContent = 'Вариант ' + it[0] + ' (muted=' + v.muted + ')\n'; v.muted = false; v.volume = 1;
     if (it[2] === 'DIRECT') {
       fetch(W + '/stream?channel=btv').then(function (r) { return r.json(); }).then(function (d) { v.src = d.url; v.play().catch(function (e) { say('play: ' + e.name); }); });
     } else { v.src = it[2] + (it[2].indexOf('?') > 0 ? '&' : '?') + 't=' + Date.now(); v.play().catch(function (e) { say('play: ' + e.name); }); }

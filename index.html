@@ -92,7 +92,7 @@
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
   <div class="channels-grid" id="channels-grid"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v16 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333">v17 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -530,6 +530,8 @@ if (isIOS()) {
   }
   ['loadstart', 'playing'].forEach(ev => video.addEventListener(ev, airVis));
   airBtn.onclick = () => {
+    // Заглушённое видео iOS не передаёт на ТВ (подтверждено тестами): включаем звук прямо в жесте нажатия
+    try { video.muted = false; video.volume = 1; userUnmuted = true; _soundWanted = true; unmuteBtn.textContent = '🔇 ' + t.mute; } catch (e) {}
     if (!hasAir) {
       const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
       const w = window.open(url, '_blank');
@@ -566,7 +568,7 @@ function loadStream(url) {
     }
   }
 
-  video.muted=true;
+  video.muted = !(_forceNative && _soundWanted);   // для AirPlay звук должен остаться включённым
   const _native = _forceNative && isIOS() && !!video.canPlayType('application/vnd.apple.mpegurl');
   if (Hls.isSupported() && !_native) {
     hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30,
@@ -685,7 +687,6 @@ async function init() {
   setStatus('loading'); reloadBtn.style.display='none'; unmuteBtn.style.display='none';
   try {
     // AirPlay (нативный плеер iOS): ТВ сам берёт поток, поэтому ему нужен стабильный адрес воркера, который отдаёт m3u8 (как в эталоне: stream + '&native=1')
-    if (_forceNative && isIOS()) { loadStream(currentCh.stream + '&native=1'); return; }
     // Прямая ссылка на CDN (источник отдаёт CORS). После 2 неудач подряд — запасной путь через воркер.
     const viaProxy = _failStreak >= 2 ? '&proxy=1' : '';
     const r = await fetch(currentCh.stream + '&t=' + Date.now() + viaProxy, { cache:'no-store' });

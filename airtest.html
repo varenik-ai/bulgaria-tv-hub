@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="referrer" content="no-referrer" />
+<meta name="robots" content="noindex" />
+<title>AirPlay test</title>
+<style>
+  body { background:#0a0a14; color:#ddd; font:15px/1.5 -apple-system,sans-serif; margin:0; padding:14px; }
+  h1 { font-size:18px; margin-bottom:6px; }
+  p { color:#999; font-size:13px; margin-bottom:10px; }
+  video { width:100%; background:#000; border-radius:10px; aspect-ratio:16/9; }
+  button { display:block; width:100%; text-align:left; margin:6px 0; padding:11px 12px; border-radius:10px; border:1px solid #2a2a3a; background:#1a1a28; color:#fff; font-size:14px; }
+  button.on { border-color:#1565c0; background:#12264a; }
+  #log { margin-top:10px; font:12px/1.4 ui-monospace,monospace; color:#7fdc9a; white-space:pre-wrap; min-height:70px; }
+</style>
+</head>
+<body>
+<h1>Тест AirPlay на ТВ</h1>
+<p>Открой в Safari. Нажми вариант, дождись картинки на телефоне, затем значок AirPlay в панели видео и выбери ТВ. Запиши, какие варианты пошли на ТВ.</p>
+<video id="v" controls playsinline x-webkit-airplay="allow" muted></video>
+<div id="btns"></div>
+<div id="log"></div>
+<script>
+var W = 'https://bulgaria-worker.dyaltd.workers.dev', R = 'https://russia-worker.dyaltd.workers.dev';
+var V = [
+  ['1', 'Эталон: Россия 1 (воркер эталона, native=1)', R + '/stream?channel=rossiya1&native=1'],
+  ['2', 'Эталон: НТВ (native=1)', R + '/stream?channel=ntv&native=1'],
+  ['A', 'Bulgaria A: всё через воркер (как сейчас в v16)', W + '/airtest?channel=btv&mode=proxy'],
+  ['B', 'Bulgaria B: плейлисты через воркер, сегменты прямо (как у эталона)', W + '/airtest?channel=btv&mode=segdirect'],
+  ['C', 'Bulgaria C: как B + CODECS и RESOLUTION', W + '/airtest?channel=btv&mode=codecs'],
+  ['D', 'Bulgaria D: один вариант 720p, сегменты прямо', W + '/airtest?channel=btv&mode=single720'],
+  ['E', 'Bulgaria E: один вариант 720p, всё через воркер', W + '/airtest?channel=btv&mode=single720proxy'],
+  ['F', 'Bulgaria F: прямая ссылка источника (как в v15)', 'DIRECT']
+];
+var v = document.getElementById('v'), log = document.getElementById('log'), box = document.getElementById('btns'), cur = null;
+function say(m) { log.textContent += m + '\n'; }
+['loadedmetadata', 'playing', 'stalled', 'error', 'webkitcurrentplaybacktargetiswirelesschanged'].forEach(function (ev) {
+  v.addEventListener(ev, function () {
+    var extra = ev === 'error' ? ' code=' + (v.error && v.error.code) : '';
+    say(cur + ': ' + ev + extra + ' wireless=' + v.webkitCurrentPlaybackTargetIsWireless);
+  });
+});
+V.forEach(function (it) {
+  var b = document.createElement('button'); b.textContent = it[0] + ' — ' + it[1];
+  b.onclick = function () {
+    document.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on');
+    cur = it[0]; log.textContent = 'Вариант ' + it[0] + '\n';
+    if (it[2] === 'DIRECT') {
+      fetch(W + '/stream?channel=btv').then(function (r) { return r.json(); }).then(function (d) { v.src = d.url; v.play().catch(function (e) { say('play: ' + e.name); }); });
+    } else { v.src = it[2] + (it[2].indexOf('?') > 0 ? '&' : '?') + 't=' + Date.now(); v.play().catch(function (e) { say('play: ' + e.name); }); }
+  };
+  box.appendChild(b);
+});
+</script>
+</body>
+</html>

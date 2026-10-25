@@ -122,7 +122,8 @@ async function getStreamUrl(slug) {
 }
 
 // Проксирует плейлист/сегмент источника; в m3u8 переписывает адреса на воркер (нужно ТВ по AirPlay: телевизор сам ходит за потоком)
-async function proxyFetch(targetUrl) {
+async function proxyFetch(targetUrl, opts) {
+  opts = opts || {};
   const referer = 'https://www.seirsanduk.online/';
   try {
     const r = await fetch(targetUrl, {
@@ -144,7 +145,9 @@ async function proxyFetch(targetUrl) {
         const t = line.trim();
         if (!t || t.startsWith('#')) return line;
         const abs = t.startsWith('http') ? t : baseDir + t;
-        return WORKER_BASE + '/proxy?url=' + encodeURIComponent(abs);
+        // opts.segDirect: плейлисты идут через воркер, сегменты — прямыми ссылками на источник (как в эталоне)
+        if (opts.segDirect && !/\.m3u8(\?|$)/.test(abs)) return abs;
+        return WORKER_BASE + '/proxy?url=' + encodeURIComponent(abs) + (opts.segDirect ? '&seg=direct' : '');
       }).join('\n');
       hdrs.set('Content-Type', 'application/vnd.apple.mpegurl');
       return new Response(rewritten, { status: r.status, headers: hdrs });
@@ -200,11 +203,46 @@ export default {
       const referer = 'https://www.seirsanduk.online/';
       if (!targetUrl) return new Response('No URL', { status: 400, headers: CORS });
       if (!isAllowedHost(targetUrl)) return new Response('Forbidden host', { status: 403, headers: CORS });
-      return proxyFetch(targetUrl);
+      return proxyFetch(targetUrl, { segDirect: url.searchParams.get('seg') === 'direct' });
+    }
+
+    // /airtest?channel=X&mode=... — диагностика AirPlay на ТВ: разные варианты одного потока (см. airtest.html)
+    if (url.pathname === '/airtest') {
+      const slug = CHANNELS[url.searchParams.get('channel')];
+      const mode = url.searchParams.get('mode') || 'proxy';
+      if (!slug) return new Response('unknown channel', { status: 404, headers: CORS });
+      const streamUrl = await getStreamUrl(slug);
+      if (!streamUrl) return new Response('no_url', { status: 502, headers: CORS });
+      if (mode === 'proxy') return proxyFetch(streamUrl);
+      if (mode === 'segdirect') return proxyFetch(streamUrl, { segDirect: true });
+      const H = { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.seirsanduk.online/' };
+      const master = await (await fetch(streamUrl, { headers: H })).text();
+      const base = streamUrl.substring(0, streamUrl.lastIndexOf('/') + 1);
+      const abs = u => (u.startsWith('http') ? u : base + u);
+      const INFO = { mid: ['avc1.64001f,mp4a.40.2', '960x540'], hd720: ['avc1.64001f,mp4a.40.2', '1280x720'], hd1080: ['avc1.640028,mp4a.40.2', '1920x1080'] };
+      if (mode === 'codecs') {
+        const out = master.split('\n').map(line => {
+          const t = line.trim();
+          if (t.startsWith('#EXT-X-STREAM-INF')) {
+            const bw = (t.match(/BANDWIDTH=(\d+)/) || [])[1];
+            const key = bw === '1024000' ? 'mid' : bw === '2048000' ? 'hd720' : 'hd1080';
+            return t + ',CODECS="' + INFO[key][0] + '",RESOLUTION=' + INFO[key][1];
+          }
+          if (!t || t.startsWith('#')) return line;
+          return WORKER_BASE + '/proxy?url=' + encodeURIComponent(abs(t)) + '&seg=direct';
+        }).join('\n');
+        return new Response(out, { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
+      }
+      if (mode === 'single720' || mode === 'single720proxy') {
+        const sub = master.split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#') && l.indexOf('hd720') >= 0);
+        if (!sub) return new Response('no 720 variant', { status: 404, headers: CORS });
+        return proxyFetch(abs(sub), { segDirect: mode === 'single720' });
+      }
+      return new Response('bad mode', { status: 400, headers: CORS });
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v8-native', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v9-airtest', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

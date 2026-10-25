@@ -23,7 +23,7 @@
 <div id="btns"></div>
 <div id="log"></div>
 <script>
-var W = 'https://bulgaria-worker.dyaltd.workers.dev', R = 'https://russia-worker.dyaltd.workers.dev';
+var W = 'https://bulgaria-worker.dyaltd.workers.dev', N2 = 'https://bg-relay-test.dyaltd.workers.dev', R = 'https://russia-worker.dyaltd.workers.dev';
 var V = [
   ['1', 'Эталон: Россия 1 (воркер эталона, native=1)', R + '/stream?channel=rossiya1&native=1'],
   ['2', 'Эталон: НТВ (native=1)', R + '/stream?channel=ntv&native=1'],
@@ -43,6 +43,9 @@ var V = [
   ['M', 'ТЕСТ M: те же рабочие сегменты I, но выданные через воркер (/proxy)', W + '/airtest?channel=btv&mode=origproxy'],
   ['N', 'ТЕСТ N: те же рабочие сегменты I через воркер, адрес сегмента заканчивается на .ts', W + '/airtest?channel=btv&mode=origts'],
   ['O', 'ТЕСТ O: снимок эфира bTV 540p, сегменты с glebul через воркер, адрес на .ts', W + '/airtest?channel=btv&mode=vod540ts'],
+  ['P', 'ТЕСТ P: как M, но на ДРУГОМ воркере (bg-relay-test) + кэш-заголовки у сегментов', N2 + '/airtest?channel=btv&mode=origproxy'],
+  ['Q', 'ТЕСТ Q: как N (.ts), на другом воркере + кэш-заголовки', N2 + '/airtest?channel=btv&mode=origts'],
+  ['R', 'ТЕСТ R: снимок эфира bTV 540p через другой воркер (.ts)', N2 + '/airtest?channel=btv&mode=vod540ts'],
   ['F', 'Bulgaria F: прямая ссылка источника (как в v15)', 'DIRECT']
 ];
 var v = document.getElementById('v'), log = document.getElementById('log'), box = document.getElementById('btns'), cur = null;

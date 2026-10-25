@@ -13,7 +13,7 @@ function isAllowedHost(u) {
   } catch (e) { return false; }
 }
 
-const WORKER_BASE = 'https://bulgaria-worker.dyaltd.workers.dev';
+let WORKER_BASE = 'https://bulgaria-worker.dyaltd.workers.dev';
 
 // seirsanduk.online channel slugs → glebul.com HLS path
 const CHANNELS = {
@@ -156,6 +156,7 @@ async function proxyFetch(targetUrl, opts, req) {
     const body = await r.arrayBuffer();
     hdrs.set('Content-Type', ct || 'video/mp2t');
     hdrs.set('Accept-Ranges', 'bytes');
+    if (/\.ts(\?|$)/.test(targetUrl)) { hdrs.set('Cache-Control', 'public, max-age=300'); if (r.headers.get('last-modified')) hdrs.set('Last-Modified', r.headers.get('last-modified')); if (r.headers.get('etag')) hdrs.set('ETag', r.headers.get('etag')); }
     if (r.headers.get('content-range')) hdrs.set('Content-Range', r.headers.get('content-range'));
     return new Response(body, { status: r.status, headers: hdrs });
   } catch (e) {
@@ -168,6 +169,7 @@ async function proxyFetch(targetUrl, opts, req) {
 export default {
   async fetch(request) {
     const url = new URL(request.url);
+    WORKER_BASE = url.origin;
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
     // /stream?channel=X — get signed glebul.com URL, return it directly to browser

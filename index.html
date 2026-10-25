@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>България ТВ</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -91,7 +92,7 @@
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
   <div class="channels-grid" id="channels-grid"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v12</div>
+  <div style="margin-top:14px;font-size:11px;color:#333">v13</div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -119,6 +120,8 @@
         <button id="quality-btn" class="btn" style="display:none"></button>
         <button id="pip-btn" class="btn" style="display:none"></button>
         <button id="airplay-btn" class="btn" style="display:none">📲 AirPlay</button>
+        <button id="cast-btn" class="btn" style="display:none">📡 Cast</button>
+        <button id="tv-btn" class="btn" style="display:none"></button>
         <button id="thank-btn-player" class="btn"></button>
       </div>
     </div>
@@ -129,6 +132,8 @@
 
 <script>
 const tg = window.Telegram?.WebApp;
+const IN_TG = !!(tg && tg.initData);   // внутри Telegram видео на ТВ не транслируется (AirPlay — только звук, Cast нет)
+const SITE_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/';
 
 // ── Safe area ──────────────────────────────────────────────────────────────
 function updateSafeArea() {
@@ -231,14 +236,14 @@ const CHANNEL_GROUPS = [
 
 // ── Преводи ────────────────────────────────────────────────────────────────
 const T = {
-  bg:{ channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  ru:{ channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  en:{ channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  de:{ channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  fr:{ channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
-  es:{ channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  uk:{ channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
-  tr:{ channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
+  bg:{ tv:'📺 На ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  ru:{ tv:'📺 На ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  en:{ tv:'📺 To TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  de:{ tv:'📺 Auf den TV', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  fr:{ tv:'📺 Sur la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
+  es:{ tv:'📺 A la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  uk:{ tv:'📺 На ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
+  tr:{ tv:'📺 TV’ye', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
 };
 function getLang() {
   try { const s=tg?.initDataUnsafe?.user?.language_code?.split('-')[0].toLowerCase(); if(s&&T[s]) return s; } catch(e) {}
@@ -271,6 +276,7 @@ const modeBtn      = document.getElementById('mode-btn');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const pipBtn       = document.getElementById('pip-btn');
 const airBtn       = document.getElementById('airplay-btn');
+window.__btv = { inTG: IN_TG, video, getCh: () => currentCh, getUrl: () => window.__curUrl, stop: () => stopStream(), restart: () => { if (currentCh) init(); } };
 
 let currentCh=null, hls=null, hlsAudio=null, hideTimeout=null;
 let userPaused=false, audioOnly=false, userUnmuted=false, isExpanded=false, wakeLockSentinel=null;
@@ -376,6 +382,15 @@ pipBtn.onclick = async () => {
     else if (!isIOS() && video.requestPictureInPicture) { await video.requestPictureInPicture(); pipBtn.textContent='✕ PiP'; }
   } catch(e) {}
 };
+// «На ТВ» внутри Telegram: открываем канал во внешнем браузере (Safari/Chrome), откуда работают AirPlay и Cast
+const tvBtn = document.getElementById('tv-btn');
+if (IN_TG) {
+  tvBtn.textContent = t.tv; tvBtn.style.display = '';
+  tvBtn.onclick = () => {
+    const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
+    try { tg.openLink(url, { try_instant_view: false }); } catch (e) { window.open(url, '_blank'); }
+  };
+}
 video.addEventListener('leavepictureinpicture', async () => {
   pipBtn.textContent='🎥 PiP'; userUnmuted=false; video.muted=true;
   if (video.paused) { try { await video.play(); } catch(e) {} }
@@ -503,7 +518,7 @@ function initQuality(h) {
 // первое нажатие переключает канал на нативный плеер, второе открывает выбор устройства. Если WebView Telegram
 // не отдаёт AirPlay API — кнопка открывает страницу канала в Safari, где AirPlay есть.
 let _forceNative = false;
-if (isIOS()) {
+if (!IN_TG && window.WebKitPlaybackTargetAvailabilityEvent) {
   const hasAir = !!window.WebKitPlaybackTargetAvailabilityEvent && typeof video.webkitShowPlaybackTargetPicker === 'function';
   const isBlob = () => !video.currentSrc || /^blob:/.test(video.currentSrc);
   const airVis = () => { airBtn.style.display = (currentCh && hasAir) ? 'block' : 'none'; };
@@ -530,6 +545,8 @@ function stopStream() {
 
 function loadStream(url) {
   if (!currentCh) return;
+  window.__curUrl = url;
+  if (window.__castActive) { setStatus('live'); if (window.__castOnStream) window.__castOnStream(); return; }
   userUnmuted=false;
   const streamUrl = url;
   stopStream(); setStatus('connecting'); unmuteBtn.style.display='none'; qualityBtnHide();
@@ -545,7 +562,7 @@ function loadStream(url) {
   }
 
   video.muted=true;
-  const _native = _forceNative && isIOS() && !!video.canPlayType('application/vnd.apple.mpegurl');
+  const _native = _forceNative && !!video.canPlayType('application/vnd.apple.mpegurl');
   if (Hls.isSupported() && !_native) {
     hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30,
       capLevelToPlayerSize:true, startLevel:0, abrEwmaDefaultEstimate:500000, manifestLoadingMaxRetry:4, fragLoadingRetryDelay:500 });
@@ -626,6 +643,7 @@ function _watchdogReconnect(statusKey) {
   init().finally(() => { _watchdogReconnecting = false; });
 }
 setInterval(() => {
+  if (window.__castActive) return;
   if (!currentCh || video.seeking || _watchdogReconnecting || _gaveUp) return;
   if (video.readyState >= 3 && typeof video.getVideoPlaybackQuality === 'function') {
     const _vpq = video.getVideoPlaybackQuality();
@@ -776,5 +794,6 @@ buildHub();
   else if (raw === 'donate') openDonate();
 })();
 </script>
+<script src="cast.js" defer></script>
 </body>
 </html>

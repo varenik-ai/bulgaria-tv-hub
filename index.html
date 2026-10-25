@@ -531,6 +531,8 @@ function loadStream(url) {
   userUnmuted=false;
   const streamUrl = url;
   stopStream(); setStatus('connecting'); unmuteBtn.style.display='none'; qualityBtnHide();
+  _lastProgressTime = Date.now(); _lastVideoTime = 0; _lastFrameCount = 0; _lastFrameProgressTime = Date.now();
+  _playedOnce = false;
 
   // Android: тихая зацикленная дорожка держит медиасессию (без второго hls.js на тот же поток)
   if (isAndroid()) {
@@ -553,6 +555,7 @@ function loadStream(url) {
         if (!userUnmuted) video.muted=true;
         await video.play();
         unmuteBtn.style.display = audioOnly ? 'none' : 'block';
+        _restoreSound();
         setupMediaSession();
         if (!isIOS()) requestWakeLock();
       } catch(e) { setStatus('pressPlay'); }
@@ -566,7 +569,7 @@ function loadStream(url) {
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src=streamUrl; setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
     video.play()
-      .then(() => { unmuteBtn.style.display=audioOnly?'none':'block'; setupMediaSession(); if(!isIOS())requestWakeLock(); })
+      .then(() => { unmuteBtn.style.display=audioOnly?'none':'block'; _restoreSound(); setupMediaSession(); if(!isIOS())requestWakeLock(); })
       .catch(() => setStatus('pressPlay'));
   }
 }
@@ -574,6 +577,83 @@ function qualityBtnHide() { const b=document.getElementById('quality-btn'); if (
 
 let _playedOnce = false;
 video.addEventListener('playing', () => { _playedOnce = true; _failStreak = 0; });
+
+// ── Сторож зависания и возврат звука после реконнекта (по эталону russia-tv-hub) ──
+let _lastProgressTime = Date.now(), _lastVideoTime = 0, _lastFrameCount = 0, _lastFrameProgressTime = Date.now();
+let _watchdogReconnecting = false;
+const START_GRACE_MS = 30000; // до первого кадра даём источнику больше времени
+// Пользователь включил звук — после автопереподключения звук возвращается сам.
+let _soundWanted = false;
+function _restoreSound() {
+  if (!_soundWanted || !currentCh) return;
+  try {
+    video.muted = false; video.volume = 1; userUnmuted = true;
+    unmuteBtn.textContent = '🔇 ' + t.mute;
+    const ab = document.getElementById('audio-bg'); if (ab) { ab.muted = true; ab.pause(); }
+    setTimeout(() => {
+      if (!currentCh || !video.paused) return;
+      // браузер не дал включить звук без жеста — возвращаем безопасный режим без звука
+      video.muted = true; userUnmuted = false; unmuteBtn.textContent = '🔊 ' + t.unmute;
+      video.play().catch(() => {});
+    }, 1500);
+  } catch (e) {}
+}
+video.addEventListener('playing', () => { _playedOnce = true; _failStreak = 0; });
+video.addEventListener('timeupdate', () => {
+  if (video.currentTime !== _lastVideoTime) { _lastVideoTime = video.currentTime; _lastProgressTime = Date.now(); }
+});
+function _tryNudgeGap() {
+  try {
+    if (video.buffered && video.buffered.length) {
+      const end = video.buffered.end(video.buffered.length - 1);
+      if (end - video.currentTime > 0.5) {
+        video.currentTime = Math.max(end - 0.25, video.currentTime + 0.1);
+        return true;
+      }
+    }
+  } catch (e) {}
+  return false;
+}
+function _watchdogReconnect(statusKey) {
+  if (_watchdogReconnecting || !currentCh || _gaveUp) return;
+  if (!_playedOnce) { _failStreak++; if (_failStreak > MAX_FAIL_STREAK) { _giveUp(); return; } }
+  _watchdogReconnecting = true;
+  _lastProgressTime = Date.now();
+  setStatus(statusKey, true);
+  stopStream();
+  init().finally(() => { _watchdogReconnecting = false; });
+}
+setInterval(() => {
+  if (!currentCh || video.seeking || _watchdogReconnecting || _gaveUp) return;
+  if (video.readyState >= 3 && typeof video.getVideoPlaybackQuality === 'function') {
+    const _vpq = video.getVideoPlaybackQuality();
+    if (_vpq.totalVideoFrames > _lastFrameCount) {
+      _lastFrameCount = _vpq.totalVideoFrames;
+      _lastFrameProgressTime = Date.now();
+    } else if (!video.paused && Date.now() - _lastFrameProgressTime > 9000) {
+      // currentTime может тикать (аудио/системные часы), пока сам видеокадр не
+      // обновляется — картинка визуально замирает/чернеет при формально "живом"
+      // потоке. Проверка по currentTime одна это не ловит.
+      _lastFrameProgressTime = Date.now();
+      _watchdogReconnect('errorStream');
+      return;
+    }
+  }
+  if (video.paused && video.readyState < 3) {
+    // В мини-аппе нет пользовательской паузы во время просмотра (кроме userPaused,
+    // который здесь исключаем) — остановка без буфера означает зависание/сбой.
+    if (userPaused) return;
+    if (Date.now() - _lastProgressTime > (_playedOnce ? 12000 : START_GRACE_MS)) {
+      if (_tryNudgeGap()) { _lastProgressTime = Date.now(); return; }
+      _watchdogReconnect('errorStream');
+    }
+    return;
+  }
+  if (Date.now() - _lastProgressTime > (_playedOnce ? 18000 : START_GRACE_MS)) {
+    if (_tryNudgeGap()) { _lastProgressTime = Date.now(); return; }
+    _watchdogReconnect('errorStream');
+  }
+}, 5000);
 
 async function init() {
   if (!currentCh) return;
@@ -592,11 +672,11 @@ reloadBtn.onclick = () => { userPaused=false; _resetRetry(); init(); };
 unmuteBtn.onclick = () => {
   const ab = document.getElementById('audio-bg');
   if (video.muted) {
-    video.muted=false; video.volume=1; userUnmuted=true;
+    video.muted=false; video.volume=1; userUnmuted=true; _soundWanted=true;
     unmuteBtn.textContent = '🔇 '+t.mute;
     if (ab) { ab.muted=true; ab.pause(); }
   } else {
-    video.muted=true; userUnmuted=false;
+    video.muted=true; userUnmuted=false; _soundWanted=false;
     unmuteBtn.textContent = '🔊 '+t.unmute;
     if (ab && isIOS()) { ab.muted=false; ab.volume=0; ab.play().catch(()=>{}); }
   }
@@ -635,7 +715,7 @@ function openChannel(ch) {
   liveBadge.style.background = ch.color.replace(')', ', .9)').replace('rgb', 'rgba');
   audioOnly = false; document.body.classList.remove('audio-only');
   modeBtn.textContent = t.audioMode;
-  _resetRetry(); _playedOnce=false; _forceNative=false; airBtn.textContent='📲 AirPlay';
+  _soundWanted=false; _resetRetry(); _playedOnce=false; _forceNative=false; airBtn.textContent='📲 AirPlay';
   stopStream(); init();
 }
 

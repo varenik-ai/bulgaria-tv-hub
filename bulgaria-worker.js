@@ -4,6 +4,15 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, Range',
 };
 
+// Хосты, которые разрешено проксировать (иначе /proxy — открытый прокси)
+const ALLOWED_HOSTS = ['glebul.com', 'kupuvamsamo.online'];
+function isAllowedHost(u) {
+  try {
+    const h = new URL(u).hostname;
+    return ALLOWED_HOSTS.some(d => h === d || h.endsWith('.' + d));
+  } catch (e) { return false; }
+}
+
 const WORKER_BASE = 'https://bulgaria-worker.dyaltd.workers.dev';
 
 // seirsanduk.online channel slugs → glebul.com HLS path
@@ -142,44 +151,12 @@ export default {
       }
     }
 
-    // /stream-host?channel=X — diagnostic: shows resolved host and CF fetch result
-    if (url.pathname === '/stream-host') {
-      const ch = url.searchParams.get('channel');
-      const slug = CHANNELS[ch];
-      if (!slug) return new Response(JSON.stringify({ error: 'unknown channel' }), {
-        status: 404, headers: { ...CORS, 'Content-Type': 'application/json' }
-      });
-      try {
-        const streamUrl = await getStreamUrl(slug);
-        if (!streamUrl)
-          return new Response(JSON.stringify({ error: 'no_url' }), {
-            status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
-          });
-        const parsed = new URL(streamUrl);
-        const testR = await fetch(streamUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.seirsanduk.online/' },
-          cf: { cacheEverything: false },
-        });
-        const testBody = await testR.text();
-        return new Response(JSON.stringify({
-          host: parsed.hostname,
-          path: parsed.pathname,
-          cfStatus: testR.status,
-          cfOk: testR.ok,
-          bodyLines: testBody.split('\n').slice(0, 5),
-        }), { headers: { ...CORS, 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), {
-          status: 500, headers: { ...CORS, 'Content-Type': 'application/json' }
-        });
-      }
-    }
-
     // /proxy?url=X — proxy m3u8/ts with CORS headers, rewrite segment URLs
     if (url.pathname === '/proxy') {
       const targetUrl = url.searchParams.get('url');
-      const referer = url.searchParams.get('ref') || 'https://www.seirsanduk.online/';
+      const referer = 'https://www.seirsanduk.online/';
       if (!targetUrl) return new Response('No URL', { status: 400, headers: CORS });
+      if (!isAllowedHost(targetUrl)) return new Response('Forbidden host', { status: 403, headers: CORS });
       try {
         const r = await fetch(targetUrl, {
           headers: {
@@ -211,76 +188,6 @@ export default {
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), {
           status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
-        });
-      }
-    }
-
-    // /debug?url=X — fetch any URL, return status + body preview
-    if (url.pathname === '/debug') {
-      const targetUrl = url.searchParams.get('url');
-      const referer = url.searchParams.get('referer') || 'https://www.seirsanduk.online/';
-      if (!targetUrl) return new Response('No URL', { status: 400, headers: CORS });
-      try {
-        const r = await fetch(targetUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': referer },
-          cf: { cacheEverything: false },
-        });
-        const text = await r.text();
-        return new Response(JSON.stringify({
-          status: r.status,
-          contentType: r.headers.get('content-type'),
-          body: text.slice(0, 500),
-        }), { headers: { ...CORS, 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), {
-          status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
-        });
-      }
-    }
-
-    // /search?channel=X — показывает что именно нашли в HTML seirsanduk.online
-    if (url.pathname === '/search') {
-      const ch = url.searchParams.get('channel');
-      const slug = CHANNELS[ch];
-      if (!slug) return new Response(JSON.stringify({ error: 'unknown channel' }), {
-        status: 404, headers: { ...CORS, 'Content-Type': 'application/json' }
-      });
-      const pageUrl = `https://www.seirsanduk.online/?player=11&id=${slug}&pass=`;
-      try {
-        const r = await fetch(pageUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Referer': 'https://www.seirsanduk.online/',
-            'Accept': 'text/html,application/xhtml+xml,*/*',
-          },
-          cf: { cacheEverything: false },
-          redirect: 'follow',
-        });
-        const html = await r.text();
-        const m = html.match(/https?:\/\/[^"'\s\\]*glebul\.com[^"'\s\\]*\.m3u8[^"'\s\\]*/);
-        // Все m3u8 URL любого домена
-        const allM3u8 = [...html.matchAll(/https?:\/\/[^"'\s\\]+\.m3u8[^"'\s\\]*/g)].map(x => x[0]).slice(0, 5);
-        // iframe src
-        const iframes = [...html.matchAll(/iframe[^>]*src=["']([^"']+)["']/gi)].map(x => x[1]).slice(0, 5);
-        // script src содержащие 'stream' или 'player' или 'embed'
-        const scripts = [...html.matchAll(/src=["']([^"']*(?:stream|player|embed|glebul)[^"']*)["']/gi)].map(x => x[1]).slice(0, 5);
-        // Найдём фрагмент вокруг glebul если есть
-        const idx = html.indexOf('glebul');
-        const context = idx >= 0 ? html.slice(Math.max(0, idx - 50), idx + 200) : null;
-        return new Response(JSON.stringify({
-          httpStatus: r.status,
-          finalUrl: r.url,
-          htmlLength: html.length,
-          glebulFound: !!m,
-          glebulUrl: m ? m[0] : null,
-          glebulContext: context,
-          allM3u8,
-          iframes,
-          scripts,
-        }), { headers: { ...CORS, 'Content-Type': 'application/json' } });
-      } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), {
-          status: 500, headers: { ...CORS, 'Content-Type': 'application/json' }
         });
       }
     }

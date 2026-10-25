@@ -13,7 +13,7 @@
     gtag('config', 'G-FHRPMSKN2Y');
   </script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html,body { background:#0a0a14; height:100%; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:white; overflow:hidden; touch-action:pan-x pan-y pinch-zoom; }
@@ -25,16 +25,17 @@
     .hub-logo .white { color:white; }
     .hub-logo .red   { color:#D62612; }
     .hub-sub { font-size:13px; color:#555; margin-bottom:24px; }
-    .channels-grid { width:100%; max-width:560px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .category-header { grid-column:1/-1; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:2px; padding:6px 4px 2px; margin-top:6px; }
-    .channel-card { background:#1a1a28; border:1px solid #2a2a3a; border-radius:12px; padding:12px 10px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
-    .channel-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--ch-color,#555); }
+    .channels-grid { width:100%; max-width:560px; display:flex; flex-direction:column; gap:10px; }
+    .category-header { font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:2px; padding:6px 4px 2px; margin-top:6px; }
+    .channel-card { background:#1a1a28; border:1px solid #2a2a3a; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .channel-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px 0 0 4px; background:var(--ch-color,#555); }
     .channel-card:active { opacity:.75; transform:scale(.97); }
-    .ch-icon { width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; flex-shrink:0; }
+    .ch-icon { width:52px; height:52px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; flex-shrink:0; }
     .ch-info { flex:1; min-width:0; }
-    .ch-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ch-desc { display:none; }
-    .live-dot { width:6px; height:6px; background:var(--ch-color,#555); border-radius:50%; animation:pulse 1.2s infinite; flex-shrink:0; }
+    .ch-name { font-size:16px; font-weight:700; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ch-desc { font-size:12px; color:#555; }
+    .ch-icon img { width:100%; height:100%; object-fit:cover; }
+    .live-dot { width:8px; height:8px; background:var(--ch-color,#555); border-radius:50%; animation:pulse 1.2s infinite; flex-shrink:0; }
 
     /* ── Player ── */
     #player-screen { display:none; flex-direction:column; align-items:center; height:100%; }
@@ -138,7 +139,7 @@ function isAndroid() { return /Android/i.test(navigator.userAgent); }
 const PROXY = 'https://bulgaria-worker.dyaltd.workers.dev';
 
 const CHANNEL_GROUPS = [
-  { label: '📡 Новини и общи', channels: [
+  { label: '📡 Новини и общи', desc: 'Новини и общи програми', channels: [
     { id:'btv',           name:'bTV',            icon:'bTV',  color:'#2980b9', iconBg:'#0a1a2a', stream: PROXY+'/stream?channel=btv' },
     { id:'novatv',        name:'Nova TV',         icon:'NTV',  color:'#e74c3c', iconBg:'#2a0a0a', stream: PROXY+'/stream?channel=novatv' },
     { id:'bnt1',          name:'БНТ 1',           icon:'БНТ1', color:'#1565c0', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=bnt1' },
@@ -155,7 +156,7 @@ const CHANNEL_GROUPS = [
     { id:'skat',          name:'СКАТ',            icon:'СК',   color:'#4e342e', iconBg:'#120a0a', stream: PROXY+'/stream?channel=skat' },
     { id:'tv78',          name:'78 TV',           icon:'78',   color:'#546e7a', iconBg:'#0a0f12', stream: PROXY+'/stream?channel=tv78' },
   ]},
-  { label: '⚽ Спорт', channels: [
+  { label: '⚽ Спорт', desc: 'Спорт на живо', channels: [
     { id:'novasport',     name:'Nova Sport',      icon:'NS',   color:'#27ae60', iconBg:'#0a1a0a', stream: PROXY+'/stream?channel=novasport' },
     { id:'diemasport',    name:'Diema Sport',     icon:'DS',   color:'#2e7d32', iconBg:'#0a140a', stream: PROXY+'/stream?channel=diemasport' },
     { id:'diemasport2',   name:'Diema Sport 2',   icon:'DS2',  color:'#388e3c', iconBg:'#0a140a', stream: PROXY+'/stream?channel=diemasport2' },
@@ -167,7 +168,7 @@ const CHANNEL_GROUPS = [
     { id:'eurosport1',    name:'Eurosport 1',     icon:'ES1',  color:'#f57f17', iconBg:'#1a1200', stream: PROXY+'/stream?channel=eurosport1' },
     { id:'eurosport2',    name:'Eurosport 2',     icon:'ES2',  color:'#f9a825', iconBg:'#1a1200', stream: PROXY+'/stream?channel=eurosport2' },
   ]},
-  { label: '🎬 Филми и развлечения', channels: [
+  { label: '🎬 Филми и развлечения', desc: 'Филми, сериали, документални', channels: [
     { id:'kinonova',      name:'Kino Nova',       icon:'KN',   color:'#e67e22', iconBg:'#2a1a0a', stream: PROXY+'/stream?channel=kinonova' },
     { id:'diema',         name:'Diema',           icon:'DM',   color:'#e53935', iconBg:'#1a0a0a', stream: PROXY+'/stream?channel=diema' },
     { id:'diemafamily',   name:'Diema Family',    icon:'DMF',  color:'#fb8c00', iconBg:'#1a1000', stream: PROXY+'/stream?channel=diemafamily' },
@@ -193,7 +194,7 @@ const CHANNEL_GROUPS = [
     { id:'foodnetwork',   name:'Food Network',    icon:'FN',   color:'#ef6c00', iconBg:'#1a1000', stream: PROXY+'/stream?channel=foodnetwork' },
     { id:'kitchen24',     name:'24 Kitchen',      icon:'24K',  color:'#e65100', iconBg:'#1a0e00', stream: PROXY+'/stream?channel=kitchen24' },
   ]},
-  { label: '👶 Детски', channels: [
+  { label: '👶 Детски', desc: 'Анимация и детски', channels: [
     { id:'cartoon',       name:'Cartoon Network', icon:'CN',   color:'#e53935', iconBg:'#1a0a0a', stream: PROXY+'/stream?channel=cartoon' },
     { id:'disney',        name:'Disney Channel',  icon:'DIS',  color:'#1976d2', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=disney' },
     { id:'nickelodeon',   name:'Nickelodeon',     icon:'NIK',  color:'#ff6f00', iconBg:'#1a1200', stream: PROXY+'/stream?channel=nickelodeon' },
@@ -201,13 +202,13 @@ const CHANNEL_GROUPS = [
     { id:'nicktoons',     name:'Nicktoons',       icon:'NKT',  color:'#ffa000', iconBg:'#1a1500', stream: PROXY+'/stream?channel=nicktoons' },
     { id:'ekids',         name:'E Kids',          icon:'EK',   color:'#7cb342', iconBg:'#0f1a0a', stream: PROXY+'/stream?channel=ekids' },
   ]},
-  { label: '🎵 Музика и фолклор', channels: [
+  { label: '🎵 Музика и фолклор', desc: 'Музика и фолклор', channels: [
     { id:'planeta',       name:'Планета HD',      icon:'ПЛ',   color:'#e91e63', iconBg:'#1a0a10', stream: PROXY+'/stream?channel=planeta' },
     { id:'planetafolk',   name:'Планета Фолк',    icon:'ПФ',   color:'#c2185b', iconBg:'#180a12', stream: PROXY+'/stream?channel=planetafolk' },
     { id:'thevoice',      name:'The Voice',       icon:'TV',   color:'#ab47bc', iconBg:'#150a18', stream: PROXY+'/stream?channel=thevoice' },
     { id:'folklortv',     name:'Фолклор ТВ',      icon:'ФТ',   color:'#6a1f7a', iconBg:'#120a15', stream: PROXY+'/stream?channel=folklortv' },
   ]},
-  { label: '🌍 Регионални', channels: [
+  { label: '🌍 Регионални', desc: 'Регионални и тематични', channels: [
     { id:'citytv',        name:'City TV',         icon:'CTY',  color:'#00796b', iconBg:'#0a1412', stream: PROXY+'/stream?channel=citytv' },
     { id:'fashiontv',     name:'Fashion TV',      icon:'FTV',  color:'#f06292', iconBg:'#1a0a12', stream: PROXY+'/stream?channel=fashiontv' },
     { id:'rodinatv',      name:'Родина ТВ',       icon:'РТВ',  color:'#5d4037', iconBg:'#120f0a', stream: PROXY+'/stream?channel=rodinatv' },
@@ -524,8 +525,8 @@ function buildHub() {
       card.className = 'channel-card';
       card.style.setProperty('--ch-color', ch.color);
       card.innerHTML = `
-        <div class="ch-icon" style="background:${ch.iconBg};color:${ch.color}">${ch.icon}</div>
-        <div class="ch-info"><div class="ch-name">${ch.name}</div></div>
+        <div class="ch-icon" style="background:${ch.iconBg};color:${ch.color}">${ch.logo ? `<img src="${ch.logo}" alt="" loading="lazy">` : ch.icon}</div>
+        <div class="ch-info"><div class="ch-name">${ch.name}</div><div class="ch-desc">${ch.desc || group.desc || 'На живо'}</div></div>
         <div class="live-dot"></div>`;
       card.onclick = () => openChannel(ch);
       channelsGrid.appendChild(card);
@@ -557,6 +558,15 @@ function goToHub() {
 backBtn.onclick = () => goToHub();
 
 buildHub();
+
+// Deep-link: #id или ?startapp=id (t.me/<bot>/<app>?startapp=btv) открывает канал сразу
+(function () {
+  const raw = (location.hash || '').replace('#', '') || tg?.initDataUnsafe?.start_param || '';
+  if (!raw) return;
+  const all = CHANNEL_GROUPS.reduce((a, g) => a.concat(g.channels), []);
+  const ch = all.find(c => c.id === raw);
+  if (ch) openChannel(ch);
+})();
 </script>
 </body>
 </html>

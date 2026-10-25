@@ -233,16 +233,19 @@ export default {
         }).join('\n');
         return new Response(out, { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
       }
-      if (mode === 'single720' || mode === 'single720proxy') {
-        const sub = master.split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#') && l.indexOf('hd720') >= 0);
-        if (!sub) return new Response('no 720 variant', { status: 404, headers: CORS });
-        return proxyFetch(abs(sub), { segDirect: mode === 'single720' });
+      // single720 / single720proxy / single540 / single540proxy: один вариант качества; без суффикса proxy сегменты идут прямыми ссылками
+      const sm = mode.match(/^single(720|540)(proxy)?$/);
+      if (sm) {
+        const key = sm[1] === '540' ? '_mid/' : 'hd720';
+        const sub = master.split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#') && l.indexOf(key) >= 0);
+        if (!sub) return new Response('no variant', { status: 404, headers: CORS });
+        return proxyFetch(abs(sub), { segDirect: !sm[2] });
       }
       return new Response('bad mode', { status: 400, headers: CORS });
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v9-airtest', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v10-airtest', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

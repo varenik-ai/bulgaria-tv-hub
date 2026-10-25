@@ -32,9 +32,10 @@
     .channel-card:active { opacity:.75; transform:scale(.97); }
     .ch-icon { width:44px; height:44px; border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; }
     .ch-info { flex:1; min-width:0; }
-    .ch-name { font-size:14px; font-weight:700; line-height:1.25; white-space:normal; }
+    .ch-name { font-size:13px; font-weight:700; line-height:1.25; white-space:normal; }
     .ch-desc { display:none; }
-    .ch-icon img { width:100%; height:100%; object-fit:cover; }
+    .ch-icon.ch-logo { background:#0e0e18 !important; padding:6px; box-sizing:border-box; }
+    .ch-icon img { width:100%; height:100%; object-fit:contain; display:block; }
     .live-dot { width:8px; height:8px; background:var(--ch-color,#555); border-radius:50%; animation:pulse 1.2s infinite; flex-shrink:0; }
 
     /* ── Player ── */
@@ -160,69 +161,69 @@ const CHANNEL_GROUPS = [
   {
     label: '📡 Новини и общи',
     channels: [
-      { id:'btv',           name:'bTV', desc:'Водещата национална телевизия', icon:'bTV',  color:'#2980b9', iconBg:'#0a1a2a', stream: PROXY+'/stream?channel=btv' },
-      { id:'novatv',        name:'Nova TV', desc:'Новини, сериали и шоу', icon:'NTV',  color:'#e74c3c', iconBg:'#2a0a0a', stream: PROXY+'/stream?channel=novatv' },
-      { id:'bnt1',          name:'БНТ 1', desc:'Българска национална телевизия', icon:'БНТ1', color:'#1565c0', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=bnt1' },
-      { id:'bnt2',          name:'БНТ 2', desc:'Предавания и сериали', icon:'БНТ2', color:'#1976d2', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=bnt2' },
-      { id:'bnt3',          name:'БНТ 3', desc:'Култура и забавление', icon:'БНТ3', color:'#1e88e5', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=bnt3' },
-      { id:'bnt4',          name:'БНТ 4', desc:'Регионални новини', icon:'БНТ4', color:'#42a5f5', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=bnt4' },
-      { id:'bulgariaonair', name:'Bulgaria On Air', desc:'Новини и анализи 24/7', icon:'BOA',  color:'#00838f', iconBg:'#0a1a1a', stream: PROXY+'/stream?channel=bulgariaonair' },
-      { id:'novanews',      name:'Nova News', desc:'Новини 24/7', icon:'NN',   color:'#d32f2f', iconBg:'#1a0a0a', stream: PROXY+'/stream?channel=novanews' },
+      { id:'btv',           name:'bTV', desc:'Водещата национална телевизия', icon:'bTV',  color:'#2980b9', iconBg:'#0a1a2a', logo:'logos/btv.png', stream: PROXY+'/stream?channel=btv' },
+      { id:'novatv',        name:'Nova TV', desc:'Новини, сериали и шоу', icon:'NTV',  color:'#e74c3c', iconBg:'#2a0a0a', logo:'logos/novatv.png', stream: PROXY+'/stream?channel=novatv' },
+      { id:'bnt1',          name:'БНТ 1', desc:'Българска национална телевизия', icon:'БНТ1', color:'#1565c0', iconBg:'#0a0f1a', logo:'logos/bnt1.png', stream: PROXY+'/stream?channel=bnt1' },
+      { id:'bnt2',          name:'БНТ 2', desc:'Предавания и сериали', icon:'БНТ2', color:'#1976d2', iconBg:'#0a0f1a', logo:'logos/bnt2.png', stream: PROXY+'/stream?channel=bnt2' },
+      { id:'bnt3',          name:'БНТ 3', desc:'Култура и забавление', icon:'БНТ3', color:'#1e88e5', iconBg:'#0a0f1a', logo:'logos/bnt3.png', stream: PROXY+'/stream?channel=bnt3' },
+      { id:'bnt4',          name:'БНТ 4', desc:'Регионални новини', icon:'БНТ4', color:'#42a5f5', iconBg:'#0a0f1a', logo:'logos/bnt4.png', stream: PROXY+'/stream?channel=bnt4' },
+      { id:'bulgariaonair', name:'Bulgaria On Air', desc:'Новини и анализи 24/7', icon:'BOA',  color:'#00838f', iconBg:'#0a1a1a', logo:'logos/bulgariaonair.png', stream: PROXY+'/stream?channel=bulgariaonair' },
+      { id:'novanews',      name:'Nova News', desc:'Новини 24/7', icon:'NN',   color:'#d32f2f', iconBg:'#1a0a0a', logo:'logos/novanews.png', stream: PROXY+'/stream?channel=novanews' },
       { id:'euronews',      name:'Euronews BG', desc:'Новини от Европа и света', icon:'EN',   color:'#0d47a1', iconBg:'#0a0a1a', stream: PROXY+'/stream?channel=euronews' },
     ]
   },
   {
     label: '⚽ Спорт',
     channels: [
-      { id:'novasport',     name:'Nova Sport', desc:'Футбол и спорт на живо', icon:'NS',   color:'#27ae60', iconBg:'#0a1a0a', stream: PROXY+'/stream?channel=novasport' },
-      { id:'diemasport',    name:'Diema Sport', desc:'Спорт на живо', icon:'DS',   color:'#2e7d32', iconBg:'#0a140a', stream: PROXY+'/stream?channel=diemasport' },
-      { id:'diemasport2',   name:'Diema Sport 2', desc:'Спортни събития', icon:'DS2',  color:'#388e3c', iconBg:'#0a140a', stream: PROXY+'/stream?channel=diemasport2' },
-      { id:'diemasport3',   name:'Diema Sport 3', desc:'Спортни събития', icon:'DS3',  color:'#43a047', iconBg:'#0a140a', stream: PROXY+'/stream?channel=diemasport3' },
-      { id:'maxsport1',     name:'Max Sport 1', desc:'Футбол и спорт', icon:'MS1',  color:'#558b2f', iconBg:'#0f1a0a', stream: PROXY+'/stream?channel=maxsport1' },
-      { id:'maxsport2',     name:'Max Sport 2', desc:'Футбол и спорт', icon:'MS2',  color:'#689f38', iconBg:'#0f1a0a', stream: PROXY+'/stream?channel=maxsport2' },
-      { id:'eurosport1',    name:'Eurosport 1', desc:'Спорт от цял свят', icon:'ES1',  color:'#f57f17', iconBg:'#1a1200', stream: PROXY+'/stream?channel=eurosport1' },
-      { id:'eurosport2',    name:'Eurosport 2', desc:'Още спорт на живо', icon:'ES2',  color:'#f9a825', iconBg:'#1a1200', stream: PROXY+'/stream?channel=eurosport2' },
+      { id:'novasport',     name:'Nova Sport', desc:'Футбол и спорт на живо', icon:'NS',   color:'#27ae60', iconBg:'#0a1a0a', logo:'logos/novasport.png', stream: PROXY+'/stream?channel=novasport' },
+      { id:'diemasport',    name:'Diema Sport', desc:'Спорт на живо', icon:'DS',   color:'#2e7d32', iconBg:'#0a140a', logo:'logos/diemasport.png', stream: PROXY+'/stream?channel=diemasport' },
+      { id:'diemasport2',   name:'Diema Sport 2', desc:'Спортни събития', icon:'DS2',  color:'#388e3c', iconBg:'#0a140a', logo:'logos/diemasport2.png', stream: PROXY+'/stream?channel=diemasport2' },
+      { id:'diemasport3',   name:'Diema Sport 3', desc:'Спортни събития', icon:'DS3',  color:'#43a047', iconBg:'#0a140a', logo:'logos/diemasport3.png', stream: PROXY+'/stream?channel=diemasport3' },
+      { id:'maxsport1',     name:'Max Sport 1', desc:'Футбол и спорт', icon:'MS1',  color:'#558b2f', iconBg:'#0f1a0a', logo:'logos/maxsport1.png', stream: PROXY+'/stream?channel=maxsport1' },
+      { id:'maxsport2',     name:'Max Sport 2', desc:'Футбол и спорт', icon:'MS2',  color:'#689f38', iconBg:'#0f1a0a', logo:'logos/maxsport2.png', stream: PROXY+'/stream?channel=maxsport2' },
+      { id:'eurosport1',    name:'Eurosport 1', desc:'Спорт от цял свят', icon:'ES1',  color:'#f57f17', iconBg:'#1a1200', logo:'logos/eurosport1.png', stream: PROXY+'/stream?channel=eurosport1' },
+      { id:'eurosport2',    name:'Eurosport 2', desc:'Още спорт на живо', icon:'ES2',  color:'#f9a825', iconBg:'#1a1200', logo:'logos/eurosport2.png', stream: PROXY+'/stream?channel=eurosport2' },
     ]
   },
   {
     label: '🎬 Филми и сериали',
     channels: [
-      { id:'kinonova',      name:'Kino Nova', desc:'Филми 24/7', icon:'KN',   color:'#e67e22', iconBg:'#2a1a0a', stream: PROXY+'/stream?channel=kinonova' },
-      { id:'diema',         name:'Diema', desc:'Сериали и филми', icon:'DM',   color:'#e53935', iconBg:'#1a0a0a', stream: PROXY+'/stream?channel=diema' },
-      { id:'diemafamily',   name:'Diema Family', desc:'Семейни сериали', icon:'DMF',  color:'#fb8c00', iconBg:'#1a1000', stream: PROXY+'/stream?channel=diemafamily' },
-      { id:'btvcinema',     name:'bTV Cinema', desc:'Холивудски филми', icon:'CIN',  color:'#c0392b', iconBg:'#1a0a0a', stream: PROXY+'/stream?channel=btvcinema' },
-      { id:'btvaction',     name:'bTV Action', desc:'Екшън и приключения', icon:'ACT',  color:'#8e44ad', iconBg:'#1a0a2a', stream: PROXY+'/stream?channel=btvaction' },
-      { id:'btvcomedy',     name:'bTV Comedy', desc:'Комедии и сериали', icon:'COM',  color:'#f39c12', iconBg:'#1a1a0a', stream: PROXY+'/stream?channel=btvcomedy' },
+      { id:'kinonova',      name:'Kino Nova', desc:'Филми 24/7', icon:'KN',   color:'#e67e22', iconBg:'#2a1a0a', logo:'logos/kinonova.png', stream: PROXY+'/stream?channel=kinonova' },
+      { id:'diema',         name:'Diema', desc:'Сериали и филми', icon:'DM',   color:'#e53935', iconBg:'#1a0a0a', logo:'logos/diema.png', stream: PROXY+'/stream?channel=diema' },
+      { id:'diemafamily',   name:'Diema Family', desc:'Семейни сериали', icon:'DMF',  color:'#fb8c00', iconBg:'#1a1000', logo:'logos/diemafamily.png', stream: PROXY+'/stream?channel=diemafamily' },
+      { id:'btvcinema',     name:'bTV Cinema', desc:'Холивудски филми', icon:'CIN',  color:'#c0392b', iconBg:'#1a0a0a', logo:'logos/btvcinema.png', stream: PROXY+'/stream?channel=btvcinema' },
+      { id:'btvaction',     name:'bTV Action', desc:'Екшън и приключения', icon:'ACT',  color:'#8e44ad', iconBg:'#1a0a2a', logo:'logos/btvaction.png', stream: PROXY+'/stream?channel=btvaction' },
+      { id:'btvcomedy',     name:'bTV Comedy', desc:'Комедии и сериали', icon:'COM',  color:'#f39c12', iconBg:'#1a1a0a', logo:'logos/btvcomedy.png', stream: PROXY+'/stream?channel=btvcomedy' },
       { id:'btvstory',      name:'bTV Story', desc:'Сериали и истории', icon:'STR',  color:'#d4ac0d', iconBg:'#1a1500', stream: PROXY+'/stream?channel=btvstory' },
-      { id:'axn',           name:'AXN', desc:'Екшън сериали', icon:'AXN',  color:'#b71c1c', iconBg:'#1a0808', stream: PROXY+'/stream?channel=axn' },
-      { id:'starchannel',   name:'Star Channel', desc:'Сериали и филми', icon:'ST',   color:'#ffd600', iconBg:'#1a1600', stream: PROXY+'/stream?channel=starchannel' },
+      { id:'axn',           name:'AXN', desc:'Екшън сериали', icon:'AXN',  color:'#b71c1c', iconBg:'#1a0808', logo:'logos/axn.png', stream: PROXY+'/stream?channel=axn' },
+      { id:'starchannel',   name:'Star Channel', desc:'Сериали и филми', icon:'ST',   color:'#ffd600', iconBg:'#1a1600', logo:'logos/starchannel.png', stream: PROXY+'/stream?channel=starchannel' },
     ]
   },
   {
     label: '🔬 Развлечения и документални',
     channels: [
-      { id:'discovery',     name:'Discovery', desc:'Документални филми', icon:'DSC',  color:'#0288d1', iconBg:'#0a1018', stream: PROXY+'/stream?channel=discovery' },
-      { id:'natgeo',        name:'Nat Geo', desc:'Наука и природа', icon:'NGO',  color:'#f9a825', iconBg:'#1a1400', stream: PROXY+'/stream?channel=natgeo' },
-      { id:'tlc',           name:'TLC', desc:'Лайфстайл и реалити', icon:'TLC',  color:'#00acc1', iconBg:'#0a1418', stream: PROXY+'/stream?channel=tlc' },
-      { id:'ringbg',        name:'Ring BG', desc:'Спорт и борби', icon:'RNG',  color:'#7b1fa2', iconBg:'#150a1a', stream: PROXY+'/stream?channel=ringbg' },
+      { id:'discovery',     name:'Discovery', desc:'Документални филми', icon:'DSC',  color:'#0288d1', iconBg:'#0a1018', logo:'logos/discovery.png', stream: PROXY+'/stream?channel=discovery' },
+      { id:'natgeo',        name:'Nat Geo', desc:'Наука и природа', icon:'NGO',  color:'#f9a825', iconBg:'#1a1400', logo:'logos/natgeo.png', stream: PROXY+'/stream?channel=natgeo' },
+      { id:'tlc',           name:'TLC', desc:'Лайфстайл и реалити', icon:'TLC',  color:'#00acc1', iconBg:'#0a1418', logo:'logos/tlc.png', stream: PROXY+'/stream?channel=tlc' },
+      { id:'ringbg',        name:'Ring BG', desc:'Спорт и борби', icon:'RNG',  color:'#7b1fa2', iconBg:'#150a1a', logo:'logos/ringbg.png', stream: PROXY+'/stream?channel=ringbg' },
     ]
   },
   {
     label: '👶 Детски',
     channels: [
-      { id:'cartoon',       name:'Cartoon Network', desc:'Анимации за деца', icon:'CN',   color:'#e53935', iconBg:'#1a0a0a', stream: PROXY+'/stream?channel=cartoon' },
-      { id:'disney',        name:'Disney Channel', desc:'Приказки и анимации', icon:'DIS',  color:'#1976d2', iconBg:'#0a0f1a', stream: PROXY+'/stream?channel=disney' },
-      { id:'nickelodeon',   name:'Nickelodeon', desc:'Анимации и шоута', icon:'NIK',  color:'#ff6f00', iconBg:'#1a1200', stream: PROXY+'/stream?channel=nickelodeon' },
-      { id:'nickjr',        name:'Nick Jr', desc:'За най-малките', icon:'NJR',  color:'#ff8f00', iconBg:'#1a1400', stream: PROXY+'/stream?channel=nickjr' },
+      { id:'cartoon',       name:'Cartoon Network', desc:'Анимации за деца', icon:'CN',   color:'#e53935', iconBg:'#1a0a0a', logo:'logos/cartoon.png', stream: PROXY+'/stream?channel=cartoon' },
+      { id:'disney',        name:'Disney Channel', desc:'Приказки и анимации', icon:'DIS',  color:'#1976d2', iconBg:'#0a0f1a', logo:'logos/disney.png', stream: PROXY+'/stream?channel=disney' },
+      { id:'nickelodeon',   name:'Nickelodeon', desc:'Анимации и шоута', icon:'NIK',  color:'#ff6f00', iconBg:'#1a1200', logo:'logos/nickelodeon.png', stream: PROXY+'/stream?channel=nickelodeon' },
+      { id:'nickjr',        name:'Nick Jr', desc:'За най-малките', icon:'NJR',  color:'#ff8f00', iconBg:'#1a1400', logo:'logos/nickjr.png', stream: PROXY+'/stream?channel=nickjr' },
     ]
   },
   {
     label: '🎵 Музика и фолклор',
     channels: [
-      { id:'planeta',       name:'Планета HD', desc:'Музика и шоу', icon:'ПЛ',   color:'#e91e63', iconBg:'#1a0a10', stream: PROXY+'/stream?channel=planeta' },
-      { id:'planetafolk',   name:'Планета Фолк', desc:'Народна музика', icon:'ПФ',   color:'#c2185b', iconBg:'#180a12', stream: PROXY+'/stream?channel=planetafolk' },
-      { id:'thevoice',      name:'The Voice', desc:'Музикални клипове', icon:'TV',   color:'#ab47bc', iconBg:'#150a18', stream: PROXY+'/stream?channel=thevoice' },
-      { id:'folklortv',     name:'Фолклор ТВ', desc:'Фолклор и народни песни', icon:'ФТ',   color:'#6a1f7a', iconBg:'#120a15', stream: PROXY+'/stream?channel=folklortv' },
+      { id:'planeta',       name:'Планета HD', desc:'Музика и шоу', icon:'ПЛ',   color:'#e91e63', iconBg:'#1a0a10', logo:'logos/planeta.png', stream: PROXY+'/stream?channel=planeta' },
+      { id:'planetafolk',   name:'Планета Фолк', desc:'Народна музика', icon:'ПФ',   color:'#c2185b', iconBg:'#180a12', logo:'logos/planetafolk.png', stream: PROXY+'/stream?channel=planetafolk' },
+      { id:'thevoice',      name:'The Voice', desc:'Музикални клипове', icon:'TV',   color:'#ab47bc', iconBg:'#150a18', logo:'logos/thevoice.png', stream: PROXY+'/stream?channel=thevoice' },
+      { id:'folklortv',     name:'Фолклор ТВ', desc:'Фолклор и народни песни', icon:'ФТ',   color:'#6a1f7a', iconBg:'#120a15', logo:'logos/folklortv.png', stream: PROXY+'/stream?channel=folklortv' },
     ]
   },
 ];
@@ -696,9 +697,11 @@ function buildHub() {
       card.className = 'channel-card';
       card.style.setProperty('--ch-color', ch.color);
       card.innerHTML = `
-        <div class="ch-icon" style="background:${ch.iconBg};color:${ch.color}">${ch.logo ? `<img src="${ch.logo}" alt="" loading="lazy">` : ch.icon}</div>
+        <div class="ch-icon${ch.logo ? ' ch-logo' : ''}" style="background:${ch.iconBg};color:${ch.color}">${ch.logo ? `<img src="${ch.logo}" alt="${ch.icon}" loading="lazy">` : ch.icon}</div>
         <div class="ch-info"><div class="ch-name">${ch.name}</div><div class="ch-desc">${ch.desc || 'На живо'}</div></div>
         <div class="live-dot"></div>`;
+      const im = card.querySelector('.ch-logo img');
+      if (im) im.onerror = () => { const b = im.parentElement; b.classList.remove('ch-logo'); b.textContent = ch.icon; };
       card.onclick = () => openChannel(ch);
       channelsGrid.appendChild(card);
     });

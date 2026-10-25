@@ -27,6 +27,8 @@ var W = 'https://bulgaria-worker.dyaltd.workers.dev', R = 'https://russia-worker
 var V = [
   ['1', 'Эталон: Россия 1 (воркер эталона, native=1)', R + '/stream?channel=rossiya1&native=1'],
   ['2', 'Эталон: НТВ (native=1)', R + '/stream?channel=ntv&native=1'],
+  ['3', 'Эталон: Россия 1 через stream.russian-tv.com (СВОЙ ДОМЕН, как на сайте)', 'https://stream.russian-tv.com/stream?channel=rossiya1&native=1'],
+  ['4', 'Эталон: НТВ через stream.russian-tv.com (СВОЙ ДОМЕН)', 'https://stream.russian-tv.com/stream?channel=ntv&native=1'],
   ['A', 'Bulgaria A: всё через воркер (как сейчас в v16)', W + '/airtest?channel=btv&mode=proxy'],
   ['B', 'Bulgaria B: плейлисты через воркер, сегменты прямо (как у эталона)', W + '/airtest?channel=btv&mode=segdirect'],
   ['C', 'Bulgaria C: как B + CODECS и RESOLUTION', W + '/airtest?channel=btv&mode=codecs'],

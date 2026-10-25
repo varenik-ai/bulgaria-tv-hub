@@ -283,9 +283,29 @@ async function handleRequest(request, env) {
         ],
       },
     });
-  } else if ((text === '/post' || text === '/post_ru') && String(msg.from.id) !== String(env.ADMIN_ID)) {
+  } else if ((text === '/post' || text === '/post_ru' || text === '/fixpost') && String(msg.from.id) !== String(env.ADMIN_ID)) {
     // постить в канал может только админ (secret ADMIN_ID)
     return new Response('ok');
+  } else if (text === '/fixpost') {
+    // Правит кнопки закреплённого поста канала на месте (editMessageReplyMarkup): новое сообщение не уходит, подписчики уведомление не получают
+    const chat = await tg(env, 'getChat', { chat_id: CHANNEL });
+    const pin = chat.ok && chat.result.pinned_message;
+    if (!pin) {
+      await tg(env, 'sendMessage', { chat_id: msg.chat.id, text: '❌ Закреплённый пост не найден: ' + (chat.description || 'нет закреплённого сообщения') });
+    } else {
+      const old = JSON.stringify(pin.reply_markup ? pin.reply_markup.inline_keyboard.map(r => r.map(b => b.text + ' → ' + (b.url || ''))) : null);
+      const ru = /^🇧🇬 \*?60\+ БОЛГАРСКИХ/.test(pin.text || '');
+      const r = await tg(env, 'editMessageReplyMarkup', {
+        chat_id: CHANNEL, message_id: pin.message_id,
+        reply_markup: { inline_keyboard: [
+          [{ text: ru ? '📺 Открыть Bulgaria TV Live' : '📺 Отвори Bulgaria TV Live', url: APP_URL }],
+          [{ text: ru ? '⭐ Поблагодарить' : '⭐ Благодаря', url: APP_URL + '?startapp=donate' }],
+        ] },
+      });
+      await tg(env, 'sendMessage', { chat_id: msg.chat.id,
+        text: r.ok ? '✅ Кнопки закреплённого поста (id ' + pin.message_id + ') обновлены, подписчикам ничего не отправлено.\nБыло: ' + old
+                    : '❌ Не удалось: ' + (r.description || 'unknown') + '\nКнопки сейчас: ' + old });
+    }
   } else if (text === '/post') {
     try {
       const post = await tg(env, 'sendMessage', {

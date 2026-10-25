@@ -764,7 +764,10 @@ buildHub();
 
 // Deep-link: #id или ?startapp=id (t.me/<bot>/<app>?startapp=btv) открывает канал сразу
 (function () {
-  const raw = (location.hash || '').replace('#', '') || tg?.initDataUnsafe?.start_param || '';
+  // В Telegram location.hash непустой (#tgWebAppData=...), поэтому параметр запуска берём отдельно
+  const hp = new URLSearchParams((location.hash || '').replace('#', ''));
+  const hashId = (location.hash || '').indexOf('=') < 0 ? (location.hash || '').replace('#', '') : '';
+  const raw = tg?.initDataUnsafe?.start_param || hp.get('tgWebAppStartParam') || hashId || '';
   if (!raw) return;
   const all = CHANNEL_GROUPS.reduce((a, g) => a.concat(g.channels), []);
   const ch = all.find(c => c.id === raw);

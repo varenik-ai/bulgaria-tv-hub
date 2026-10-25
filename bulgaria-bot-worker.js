@@ -205,6 +205,27 @@ async function tg(env, method, payload) {
   return res.json();
 }
 
+// Ряд кнопок оплаты Stars: ссылка-счёт в url-кнопке открывает окно оплаты Telegram сразу, без мини-аппа
+async function donateRow(env) {
+  const row = [];
+  for (const amount of [25, 50, 100]) {
+    const r = await tg(env, 'createInvoiceLink', {
+      title: 'Bulgaria TV ⭐', description: 'Благодарность за Bulgaria TV Live',
+      payload: 'donate_' + amount, provider_token: '', currency: 'XTR', prices: [{ label: 'Bulgaria TV', amount }],
+    });
+    if (r.ok) row.push({ text: '⭐ ' + amount, url: r.result });
+  }
+  return row;
+}
+
+async function postKeyboard(env, openText, thanksText) {
+  const row = await donateRow(env);
+  return [
+    [{ text: openText, url: APP_URL }],
+    row.length ? row : [{ text: thanksText, url: APP_URL + '?startapp=donate' }],
+  ];
+}
+
 async function handleRequest(request, env) {
   const url = new URL(request.url);
 
@@ -283,16 +304,20 @@ async function handleRequest(request, env) {
         ],
       },
     });
-  } else if ((text === '/post' || text === '/post_ru') && String(msg.from.id) !== String(env.ADMIN_ID)) {
+  } else if ((text === '/post' || text === '/post_ru' || text === '/post_test') && String(msg.from.id) !== String(env.ADMIN_ID)) {
     // постить в канал может только админ (secret ADMIN_ID)
     return new Response('ok');
+  } else if (text === '/post_test') {
+    // проверка кнопок: то же сообщение, но только админу в личку (в канал не уходит)
+    await tg(env, 'sendMessage', { chat_id: msg.chat.id, text: POST_TEXT, parse_mode: 'Markdown',
+      reply_markup: { inline_keyboard: await postKeyboard(env, '📺 Отвори Bulgaria TV Live', '⭐ Благодаря') } });
   } else if (text === '/post') {
     try {
       const post = await tg(env, 'sendMessage', {
         chat_id: CHANNEL,
         text: POST_TEXT,
         parse_mode: 'Markdown',
-        reply_markup: { inline_keyboard: [[{ text: '📺 Отвори Bulgaria TV Live', url: APP_URL }], [{ text: '⭐ Благодаря', url: APP_URL + '?startapp=donate' }]] },
+        reply_markup: { inline_keyboard: await postKeyboard(env, '📺 Отвори Bulgaria TV Live', '⭐ Благодаря') },
       });
       if (post.ok) {
         await tg(env, 'pinChatMessage', { chat_id: CHANNEL, message_id: post.result.message_id });
@@ -339,7 +364,7 @@ async function handleRequest(request, env) {
         chat_id: CHANNEL,
         text: postRu,
         parse_mode: 'Markdown',
-        reply_markup: { inline_keyboard: [[{ text: '📺 Открыть Bulgaria TV Live', url: APP_URL }], [{ text: '⭐ Поблагодарить', url: APP_URL + '?startapp=donate' }]] },
+        reply_markup: { inline_keyboard: await postKeyboard(env, '📺 Открыть Bulgaria TV Live', '⭐ Поблагодарить') },
       });
       if (post.ok) {
         await tg(env, 'pinChatMessage', { chat_id: CHANNEL, message_id: post.result.message_id });

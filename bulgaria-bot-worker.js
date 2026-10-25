@@ -7,143 +7,146 @@
 
 const CHANNEL = '@BulgariaTV_Live';
 const APP_URL = 'https://t.me/BulgariaTV_Live_bot/bulgariatv_live_bot';
-const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=7';
+const WEB_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/?v=8';
 
 const greetings = {
-  bg: (name) => `🇧🇬 Здравейте, ${name}!
+  bg: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ български канала на живо в Telegram*
+Здравей, ${name}! 👋
+*Цялата българска телевизия — с един тап.*
 
-Гледайте българска телевизия онлайн — безплатно, без регистрация, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Новини:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Спорт:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Филми:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo и още
-👶 *Детски:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Музика:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ канала на живо
+🆓 Безплатно, без регистрация
+🎧 Звук на заден план, PiP, цял екран
 
-✅ HD · iOS · Android · Desktop · 8 езика`,
+👇 _Натисни бутона и си в ефир_`,
 
-  ru: (name) => `🇧🇬 Привет, ${name}!
+  ru: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ болгарских каналов в прямом эфире в Telegram*
+Привет, ${name}! 👋
+*Всё болгарское ТВ — в один тап.*
 
-Смотри болгарское телевидение онлайн — бесплатно, без регистрации, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Новости:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Спорт:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Кино:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo и другие
-👶 *Детские:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Музыка:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ каналов в прямом эфире
+🆓 Бесплатно, без регистрации
+🎧 Звук в фоне, PiP, полный экран
 
-✅ HD · iOS · Android · Desktop · 8 языков`,
+👇 _Жми кнопку — и ты в эфире_`,
 
-  en: (name) => `🇧🇬 Hello, ${name}!
+  en: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ Bulgarian TV channels live in Telegram*
+Hey, ${name}! 👋
+*All Bulgarian TV — one tap away.*
 
-Watch Bulgarian television online — free, no registration, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *News:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Sport:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Movies:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo & more
-👶 *Kids:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Music:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ live channels
+🆓 Free, no sign-up
+🎧 Background audio, PiP, fullscreen
 
-✅ HD · iOS · Android · Desktop · 8 languages`,
+👇 _Hit the button and you're on air_`,
 
-  uk: (name) => `🇧🇬 Привіт, ${name}!
+  uk: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ болгарських каналів наживо в Telegram*
+Привіт, ${name}! 👋
+*Все болгарське ТБ — в один дотик.*
 
-Дивись болгарське телебачення онлайн — безкоштовно, без реєстрації, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Новини:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Спорт:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Кіно:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo та інші
-👶 *Дитячі:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Музика:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ каналів наживо
+🆓 Безкоштовно, без реєстрації
+🎧 Звук у фоні, PiP, повний екран
 
-✅ HD · iOS · Android · Desktop · 8 мов`,
+👇 _Тисни кнопку — і ти в ефірі_`,
 
-  de: (name) => `🇧🇬 Hallo, ${name}!
+  de: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ bulgarische Sender live in Telegram*
+Hey, ${name}! 👋
+*Das ganze bulgarische TV — ein Tipp entfernt.*
 
-Bulgarisches Fernsehen online — kostenlos, ohne Anmeldung, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Nachrichten:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Sport:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Filme:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo & mehr
-👶 *Kinder:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Musik:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ Sender live
+🆓 Kostenlos, ohne Anmeldung
+🎧 Hintergrundton, PiP, Vollbild
 
-✅ HD · iOS · Android · Desktop · 8 Sprachen`,
+👇 _Button drücken und los geht's_`,
 
-  fr: (name) => `🇧🇬 Bonjour, ${name}!
+  fr: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ chaînes bulgares en direct sur Telegram*
+Salut, ${name}! 👋
+*Toute la télé bulgare — en un tap.*
 
-Regardez la télévision bulgare en ligne — gratuit, sans inscription, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Actualités:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Sport:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Films:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo et plus
-👶 *Enfants:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Musique:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ chaînes en direct
+🆓 Gratuit, sans inscription
+🎧 Audio en arrière-plan, PiP, plein écran
 
-✅ HD · iOS · Android · Desktop · 8 langues`,
+👇 _Appuie sur le bouton, c'est parti_`,
 
-  es: (name) => `🇧🇬 ¡Hola, ${name}!
+  es: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ canales búlgaros en directo en Telegram*
+¡Hola, ${name}! 👋
+*Toda la tele búlgara — a un toque.*
 
-Mira la televisión búlgara online — gratis, sin registro, 24/7.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Noticias:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Deporte:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Cine:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo y más
-👶 *Infantil:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Música:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ canales en directo
+🆓 Gratis y sin registro
+🎧 Audio en segundo plano, PiP, pantalla completa
 
-✅ HD · iOS · Android · Desktop · 8 idiomas`,
+👇 _Pulsa el botón y ya estás en vivo_`,
 
-  tr: (name) => `🇧🇬 Merhaba, ${name}!
+  tr: (name) => `🇧🇬 *БЪЛГАРИЯ·ТВ*
 
-📺 *БЪЛГАРИЯ·ТВ — 60+ Bulgar kanalı Telegram'da canlı*
+Selam, ${name}! 👋
+*Tüm Bulgar TV — tek dokunuşla.*
 
-Bulgar televizyonunu online izleyin — ücretsiz, kayıt gerekmez, 7/24.
+bTV · Nova · БНТ · Diema · Eurosport · Disney · Discovery…
 
-📡 *Haber:* bTV, Nova TV, БНТ 1/2/3/4, Bulgaria On Air, Nova News, Euronews
-⚽ *Spor:* Nova Sport, Diema Sport 1/2/3, Max Sport 1–4, Eurosport 1/2
-🎬 *Film:* Kino Nova, Diema, bTV Cinema/Action/Comedy/Story, AXN, Star Channel, Discovery, Nat Geo ve daha fazlası
-👶 *Çocuk:* Cartoon Network, Disney Channel, Nickelodeon, Nick Jr
-🎵 *Müzik:* Планета, Планета Фолк, The Voice, Фолклор ТВ
+⚡ 60+ canlı kanal
+🆓 Ücretsiz, kayıt yok
+🎧 Arka planda ses, PiP, tam ekran
 
-✅ HD · iOS · Android · Desktop · 8 dil`,
+👇 _Butona dokun, yayındasın_`,
 
 };
 
 const btnWatch = {
-  bg: '📺 Отвори Bulgaria TV Live',
-  ru: '📺 Открыть Bulgaria TV Live',
-  en: '📺 Open Bulgaria TV Live',
-  uk: '📺 Відкрити Bulgaria TV Live',
-  de: '📺 Bulgaria TV Live öffnen',
-  fr: '📺 Ouvrir Bulgaria TV Live',
-  es: '📺 Abrir Bulgaria TV Live',
-  tr: '📺 Bulgaria TV Live Aç',
+  bg: '▶️ Гледай на живо',
+  ru: '▶️ Смотреть эфир',
+  en: '▶️ Watch live',
+  uk: '▶️ Дивитись наживо',
+  de: '▶️ Live ansehen',
+  fr: '▶️ Regarder en direct',
+  es: '▶️ Ver en directo',
+  tr: '▶️ Canlı izle',
 };
 
 const btnBrowser = {
-  bg: '🌐 Отвори в браузър',
-  ru: '🌐 Открыть в браузере',
-  en: '🌐 Open in browser',
-  uk: '🌐 Відкрити у браузері',
-  de: '🌐 Im Browser öffnen',
-  fr: '🌐 Ouvrir dans le navigateur',
-  es: '🌐 Abrir en navegador',
-  tr: '🌐 Tarayıcıda aç',
+  bg: '🌐 В браузър',
+  ru: '🌐 В браузере',
+  en: '🌐 In browser',
+  uk: '🌐 У браузері',
+  de: '🌐 Im Browser',
+  fr: '🌐 Navigateur',
+  es: '🌐 En el navegador',
+  tr: '🌐 Tarayıcıda',
+};
+
+const btnChannel = {
+  bg: '📣 Канал',
+  ru: '📣 Канал',
+  en: '📣 Channel',
+  uk: '📣 Канал',
+  de: '📣 Kanal',
+  fr: '📣 Chaîne',
+  es: '📣 Canal',
+  tr: '📣 Kanal',
 };
 
 const POST_TEXT = `🇧🇬 *BULGARIAN TV LIVE — 60+ КАНАЛА НА ЖИВО* 🔴
@@ -235,7 +238,10 @@ async function handleRequest(request, env) {
       reply_markup: {
         inline_keyboard: [
           [{ text: btnWatch[lang] || btnWatch.bg, web_app: { url: WEB_URL } }],
-          [{ text: btnBrowser[lang] || btnBrowser.bg, url: WEB_URL }],
+          [
+            { text: btnBrowser[lang] || btnBrowser.bg, url: WEB_URL },
+            { text: btnChannel[lang] || btnChannel.bg, url: 'https://t.me/BulgariaTV_Live' },
+          ],
         ],
       },
     });

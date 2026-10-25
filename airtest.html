@@ -36,6 +36,8 @@ var V = [
   ['E', 'Bulgaria E: один вариант 720p, всё через воркер', W + '/airtest?channel=btv&mode=single720proxy'],
   ['G', 'Bulgaria G: один вариант 540p (самый лёгкий), сегменты прямо', W + '/airtest?channel=btv&mode=single540'],
   ['H', 'Bulgaria H: один вариант 540p, всё через воркер', W + '/airtest?channel=btv&mode=single540proxy'],
+  ['I', 'КОНТРОЛЬ I: оригинальные сегменты bTV (4 шт., 24 с) со статического хостинга, без изменений', 'airtest/orig/index.m3u8'],
+  ['J', 'ТЕСТ J: те же сегменты, но порядок данных исправлен (удалено служебное SEI)', 'airtest/fixed/index.m3u8'],
   ['F', 'Bulgaria F: прямая ссылка источника (как в v15)', 'DIRECT']
 ];
 var v = document.getElementById('v'), log = document.getElementById('log'), box = document.getElementById('btns'), cur = null;

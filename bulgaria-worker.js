@@ -139,9 +139,12 @@ export default {
           return new Response(JSON.stringify({ error: 'no_url' }), {
             status: 502, headers: { ...CORS, 'Content-Type': 'application/json' }
           });
-        // Proxy through Worker so browser gets CORS headers
-        const proxyUrl = WORKER_BASE + '/proxy?url=' + encodeURIComponent(streamUrl);
-        return new Response(JSON.stringify({ url: proxyUrl }), {
+        // CDN источника отдаёт CORS (Access-Control-Allow-Origin: *) — отдаём прямую ссылку, плеер грузит сегменты сам.
+        // ?proxy=1 — запасной путь через воркер (если прямой не открылся).
+        const out = url.searchParams.get('proxy') === '1'
+          ? WORKER_BASE + '/proxy?url=' + encodeURIComponent(streamUrl)
+          : streamUrl;
+        return new Response(JSON.stringify({ url: out }), {
           headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
         });
       } catch (e) {
@@ -193,7 +196,7 @@ export default {
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v6-multicdn', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v7-direct', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

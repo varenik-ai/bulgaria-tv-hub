@@ -34,3 +34,10 @@
 - Токен бота НЕ хранится в репозитории: `wrangler secret put TOKEN` (+ `ADMIN_ID`, `SETUP_KEY`).
 - Деплой: `cp bulgaria-worker.js ~/bulgaria-worker/src/index.js && npx wrangler deploy` (то же для bulgaria-bot-worker).
 - Deep-link: `#btv` или `t.me/BulgariaTV_Live_bot/bulgariatv_live_bot?startapp=btv`.
+
+## Что добавлено по эталону v1.3 (Bulgaria v9)
+- Сетка в 2 колонки, синяя кнопка «Каналы» первой в панели, кнопка 📲 AirPlay (только iOS, если WebView отдаёт AirPlay API), выбор качества ⚙ (hls.js, `localStorage rtv_quality`).
+- Повторные подключения только через `_scheduleInit` (backoff до 30 с, после 6 неудач «Канал временно недоступен»); после 2 неудач `init()` просит у воркера запасной путь `&proxy=1`.
+- Режим CORS-only: `/stream` отдаёт прямую ссылку на CDN glebul.com (все 38 каналов отдают `Access-Control-Allow-Origin: *`), `/proxy` оставлен как запасной и пускает только разрешённые хосты.
+- Android: `audio-bg` играет `SILENT_WAV`, второй hls.js не поднимается. Авторефреш токена удалён.
+- Пока не перенесено: сторож зависания, `_restoreSound`, нативное качество iOS (`/stream-q`).

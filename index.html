@@ -25,15 +25,15 @@
     .hub-logo .white { color:white; }
     .hub-logo .red   { color:#D62612; }
     .hub-sub { font-size:13px; color:#555; margin-bottom:24px; }
-    .channels-grid { width:100%; max-width:560px; display:flex; flex-direction:column; gap:10px; }
-    .category-header { font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:2px; padding:6px 4px 2px; margin-top:6px; }
-    .channel-card { background:#1a1a28; border:1px solid #2a2a3a; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; }
+    .channels-grid { width:100%; max-width:560px; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .category-header { grid-column:1/-1; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:2px; padding:6px 4px 2px; margin-top:6px; }
+    .channel-card { background:#1a1a28; border:1px solid #2a2a3a; border-radius:14px; padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; min-width:0; }
     .channel-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px 0 0 4px; background:var(--ch-color,#555); }
     .channel-card:active { opacity:.75; transform:scale(.97); }
-    .ch-icon { width:52px; height:52px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900; flex-shrink:0; }
+    .ch-icon { width:44px; height:44px; border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; }
     .ch-info { flex:1; min-width:0; }
-    .ch-name { font-size:16px; font-weight:700; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ch-desc { font-size:12px; color:#555; }
+    .ch-name { font-size:14px; font-weight:700; line-height:1.25; white-space:normal; }
+    .ch-desc { display:none; }
     .ch-icon img { width:100%; height:100%; object-fit:cover; }
     .live-dot { width:8px; height:8px; background:var(--ch-color,#555); border-radius:50%; animation:pulse 1.2s infinite; flex-shrink:0; }
 
@@ -41,7 +41,7 @@
     #player-screen { display:none; flex-direction:column; align-items:center; height:100%; }
     .player-header { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 14px; padding-top:calc(10px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); background:#0d0d1a; border-bottom:1px solid #1e1e2e; flex-shrink:0; }
     .ch-title-bar { font-size:15px; font-weight:700; }
-    .btn.back { background:rgba(255,255,255,.08); flex:1; max-width:130px; }
+    .btn.channels-btn { background:linear-gradient(135deg,#1565c0,#0d47a1); font-weight:700; order:-1; }
     .live-badge-top { color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:6px; display:none; }
 
     /* ── Video ── */
@@ -109,12 +109,14 @@
     <video id="video" autoplay playsinline webkit-playsinline airplay="allow" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;"></video>
     <div class="overlay" id="overlay">
       <div class="controls">
+        <button id="back-btn" class="btn channels-btn"></button>
         <button id="reload-btn" class="btn reload" style="display:none"></button>
         <button id="unmute-btn" class="btn danger" style="display:none"></button>
-        <button id="back-btn" class="btn back">← Канали</button>
         <button id="mode-btn" class="btn"></button>
         <button id="fullscreen-btn" class="btn"></button>
+        <button id="quality-btn" class="btn" style="display:none"></button>
         <button id="pip-btn" class="btn" style="display:none"></button>
+        <button id="airplay-btn" class="btn" style="display:none">📲 AirPlay</button>
         <button id="thank-btn-player" class="btn"></button>
       </div>
     </div>
@@ -227,14 +229,14 @@ const CHANNEL_GROUPS = [
 
 // ── Преводи ────────────────────────────────────────────────────────────────
 const T = {
-  bg:{ thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  ru:{ thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  en:{ thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  de:{ thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  fr:{ thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
-  es:{ thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  uk:{ thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
-  tr:{ thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
+  bg:{ channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  ru:{ channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  en:{ channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  de:{ channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  fr:{ channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
+  es:{ channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  uk:{ channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
+  tr:{ channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
 };
 function getLang() {
   try { const s=tg?.initDataUnsafe?.user?.language_code?.split('-')[0].toLowerCase(); if(s&&T[s]) return s; } catch(e) {}
@@ -266,13 +268,15 @@ const unmuteBtn    = document.getElementById('unmute-btn');
 const modeBtn      = document.getElementById('mode-btn');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const pipBtn       = document.getElementById('pip-btn');
+const airBtn       = document.getElementById('airplay-btn');
 
-let currentCh=null, hls=null, hlsAudio=null, hideTimeout=null, tokenRefreshTimer=null;
+let currentCh=null, hls=null, hlsAudio=null, hideTimeout=null;
 let userPaused=false, audioOnly=false, userUnmuted=false, isExpanded=false, wakeLockSentinel=null;
 
 reloadBtn.textContent     = t.reconnect;
 unmuteBtn.textContent     = t.unmute;
 modeBtn.textContent       = t.audioMode;
+backBtn.textContent       = t.channels;
 fullscreenBtn.textContent = t.fullscreen;
 
 // ── Утилиты ────────────────────────────────────────────────────────────────
@@ -425,11 +429,99 @@ window.addEventListener('pageshow', async () => {
   if (!userPaused && video.paused) { try { await video.play(); } catch(e) {} }
 });
 
+
+// ── Reconnect backoff, тихая дорожка, качество, AirPlay (по эталону russia-tv-hub) ──
+// v82.40: потолок повторных подключений — пауза растёт (1–3 с → до 30 с), после MAX_FAIL_STREAK неудач подряд
+// показываем «Канал временно недоступен» с кнопкой «Повторить», чтобы не долбить воркеры бесконечно.
+const MAX_FAIL_STREAK = 6;
+let _failStreak = 0, _gaveUp = false;
+function _resetRetry() { _failStreak = 0; _gaveUp = false; }
+function _giveUp() { _gaveUp = true; stopStream(); setStatus('unavailable', true); }
+function _scheduleInit(baseMs) {
+  if (!currentCh || _gaveUp) return;
+  _failStreak++;
+  if (_failStreak > MAX_FAIL_STREAK) { _giveUp(); return; }
+  const wait = Math.min(30000, baseMs * Math.pow(2, _failStreak - 1));
+  setTimeout(() => { if (currentCh && !_gaveUp) init(); }, wait);
+}
+// v82.40: тихая зацикленная дорожка для Android вместо второго hls.js на тот же поток (держит медиасессию, трафика не даёт)
+const SILENT_WAV = (() => { const n = 1000, b = new Uint8Array(44 + n), dv = new DataView(b.buffer); const w = (o, s) => { for (let i = 0; i < s.length; i++) b[o + i] = s.charCodeAt(i); }; w(0, 'RIFF'); dv.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true); w(36, 'data'); dv.setUint32(40, n, true); b.fill(128, 44); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return 'data:audio/wav;base64,' + btoa(s); })();
+
+// ── Выбор качества (Авто / фиксированный уровень), если источник отдаёт несколько уровней ──
+function initQuality(h) {
+  const btn = document.getElementById('quality-btn'), cont = document.getElementById('video-container');
+  if (!btn || !cont) return;
+  btn.style.display = 'none'; btn.onclick = null;
+  const old = document.getElementById('quality-menu'); if (old) old.remove();
+  const L = getLang(), X = { a: L==='ru'?'Авто':(L==='bg'||L==='uk')?'Авто':'Auto', m: L==='ru'?'Мбит/с':(L==='bg'||L==='uk')?'Мбит/с':'Mbit/s' };
+  const KEY = 'rtv_quality';
+  const get = () => { try { return localStorage.getItem(KEY) || 'auto'; } catch (e) { return 'auto'; } };
+  const set = v => { try { localStorage.setItem(KEY, v); } catch (e) {} };
+  const lab = l => { const mb = l.bitrate ? l.bitrate / 1e6 : 0; return l.height ? l.height + 'p' : (mb ? (mb >= 10 ? mb.toFixed(0) : mb.toFixed(1)) + ' ' + X.m : ''); };
+  const apply = () => {
+    const p = get(), lv = h.levels || [];
+    if (p === 'auto' || !lv.length) { h.currentLevel = -1; return; }
+    let idx = -1;
+    if (p[0] === 'b') { const w = parseInt(p.slice(1), 10) * 1000; let d = 1e12; lv.forEach((l, i) => { const x = Math.abs((l.bitrate || 0) - w); if (x < d) { d = x; idx = i; } }); }
+    else { const w = parseInt(p, 10); let bh = -1; lv.forEach((l, i) => { const hh = l.height || 0; if (hh <= w && hh > bh) { bh = hh; idx = i; } }); }
+    h.currentLevel = idx;
+  };
+  const label = () => {
+    const p = get(); const lv = h.levels || [];
+    if (p === 'auto') { const l = lv[h.currentLevel >= 0 ? h.currentLevel : 0]; const hh = (l && l.height) || video.videoHeight || 0; return '⚙ ' + X.a + (hh ? ' (' + hh + 'p)' : ''); }
+    const cl = lv[h.currentLevel]; return '⚙ ' + (cl ? lab(cl) : p);
+  };
+  const closeMenu = () => { const m = document.getElementById('quality-menu'); if (m) m.remove(); };
+  const build = () => {
+    const lv = h.levels || []; if (lv.length < 2) return;
+    apply(); btn.style.display = ''; btn.textContent = label();
+    btn.onclick = e => {
+      e.stopPropagation();
+      if (document.getElementById('quality-menu')) { closeMenu(); return; }
+      const m = document.createElement('div'); m.id = 'quality-menu';
+      m.style.cssText = 'position:absolute;right:10px;bottom:76px;z-index:60;background:#12121f;border:1px solid #2a2a40;border-radius:10px;padding:6px;min-width:170px;box-shadow:0 8px 28px rgba(0,0,0,.55);color:#e2e2f0;font:13px/1.3 -apple-system,BlinkMacSystemFont,sans-serif';
+      const add = (text, value) => {
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = text;
+        b.style.cssText = 'display:block;width:100%;text-align:left;background:' + (get() === value ? '#1a3a7a' : 'none') + ';border:0;color:inherit;padding:9px 10px;border-radius:7px;cursor:pointer;font:inherit';
+        b.onclick = ev => { ev.stopPropagation(); set(value); apply(); btn.textContent = label(); closeMenu(); };
+        m.appendChild(b);
+      };
+      add(X.a, 'auto');
+      lv.map(l => l).sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0)).forEach(l => add(lab(l) + (l.height && l.bitrate ? ' · ' + (l.bitrate / 1e6).toFixed(1) + ' ' + X.m : ''), l.height ? String(l.height) : 'b' + Math.round((l.bitrate || 0) / 1000)));
+      cont.appendChild(m);
+    };
+  };
+  if ((h.levels || []).length) build(); else h.once(Hls.Events.MANIFEST_PARSED, build);
+  h.on(Hls.Events.LEVEL_SWITCHED, () => { if (btn.style.display !== 'none') btn.textContent = label(); });
+  document.addEventListener('click', closeMenu);
+}
+
+// ── AirPlay (iOS): передача видео на Apple TV / телевизор с AirPlay без зеркала экрана (v82.42) ──
+// Системный выбор устройства работает только для нативного HLS (не blob/MSE от hls.js). Если канал идёт через hls.js,
+// первое нажатие переключает канал на нативный плеер, второе открывает выбор устройства. Если WebView Telegram
+// не отдаёт AirPlay API — кнопка открывает страницу канала в Safari, где AirPlay есть.
+let _forceNative = false;
+if (isIOS()) {
+  const hasAir = !!window.WebKitPlaybackTargetAvailabilityEvent && typeof video.webkitShowPlaybackTargetPicker === 'function';
+  const isBlob = () => !video.currentSrc || /^blob:/.test(video.currentSrc);
+  const airVis = () => { airBtn.style.display = (currentCh && hasAir) ? 'block' : 'none'; };
+  if (hasAir) {
+    try { video.setAttribute('x-webkit-airplay', 'allow'); video.disableRemotePlayback = false; } catch (e) {}
+    video.addEventListener('webkitplaybacktargetavailabilitychanged', (e) => { if (e.availability !== 'available' && !isBlob()) airBtn.style.display = 'none'; else airVis(); });
+  }
+  ['loadstart', 'playing'].forEach(ev => video.addEventListener(ev, airVis));
+  airBtn.onclick = () => {
+    if (!hasAir) {
+      return; // нет AirPlay API в этом WebView — кнопка скрыта (см. airVis)
+    }
+    if (isBlob()) { _forceNative = true; airBtn.textContent = '📲 AirPlay ▶'; stopStream(); init(); return; }
+    try { video.webkitShowPlaybackTargetPicker(); } catch (e) {}
+  };
+}
 // ── Поток ──────────────────────────────────────────────────────────────────
 function stopStream() {
   if (hls) { hls.destroy(); hls=null; }
   if (hlsAudio) { hlsAudio.destroy(); hlsAudio=null; }
-  if (tokenRefreshTimer) { clearInterval(tokenRefreshTimer); tokenRefreshTimer=null; }
   video.src=''; liveBadge.style.display='none'; liveBadgeTop.style.display='none';
   if (wakeLockSentinel) { wakeLockSentinel.release().catch(()=>{}); wakeLockSentinel=null; }
 }
@@ -437,25 +529,24 @@ function stopStream() {
 function loadStream(url) {
   if (!currentCh) return;
   userUnmuted=false;
-  // aistr.xyz:28791 — стриминговый CDN с CORS-заголовками, грузим напрямую.
-  // Cloudflare Workers не могут проксировать нестандартный порт 28791.
   const streamUrl = url;
-  stopStream(); setStatus('connecting'); unmuteBtn.style.display='none';
+  stopStream(); setStatus('connecting'); unmuteBtn.style.display='none'; qualityBtnHide();
 
-  // Android: audio-bg для фонового звука
+  // Android: тихая зацикленная дорожка держит медиасессию (без второго hls.js на тот же поток)
   if (isAndroid()) {
     const audioBg = document.getElementById('audio-bg');
-    if (audioBg && Hls.isSupported()) {
-      hlsAudio = new Hls({ liveSyncDurationCount:3, enableWorker:true });
-      hlsAudio.loadSource(streamUrl); hlsAudio.attachMedia(audioBg);
-      hlsAudio.on(Hls.Events.MANIFEST_PARSED, () => { audioBg.muted=true; audioBg.play().catch(()=>{}); });
+    if (audioBg) {
+      try { if (audioBg.getAttribute('data-silent') !== '1') { audioBg.src = SILENT_WAV; audioBg.loop = true; audioBg.setAttribute('data-silent', '1'); } audioBg.muted = true; audioBg.play().catch(() => {}); } catch (e) {}
     }
   }
 
   video.muted=true;
-  if (Hls.isSupported()) {
-    hls = new Hls({ liveSyncDurationCount:3, lowLatencyMode:true, enableWorker:true, backBufferLength:30 });
+  const _native = _forceNative && isIOS() && !!video.canPlayType('application/vnd.apple.mpegurl');
+  if (Hls.isSupported() && !_native) {
+    hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30,
+      capLevelToPlayerSize:true, startLevel:0, abrEwmaDefaultEstimate:500000, manifestLoadingMaxRetry:4, fragLoadingRetryDelay:500 });
     hls.loadSource(streamUrl); hls.attachMedia(video);
+    initQuality(hls);
     hls.on(Hls.Events.MANIFEST_PARSED, async () => {
       setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
       try {
@@ -468,9 +559,9 @@ function loadStream(url) {
     });
     hls.on(Hls.Events.ERROR, (e, data) => {
       if (!data.fatal) return;
-      if (data.type===Hls.ErrorTypes.NETWORK_ERROR) { try{hls.startLoad();}catch(err){} return; }
+      if (data.type===Hls.ErrorTypes.NETWORK_ERROR && _playedOnce) { try{hls.startLoad();}catch(err){} return; }
       if (data.type===Hls.ErrorTypes.MEDIA_ERROR)   { try{hls.recoverMediaError();}catch(err){} return; }
-      setStatus('errorStream', true); setTimeout(() => init(), 5000);
+      setStatus('errorStream', true); _scheduleInit(2000);
     });
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src=streamUrl; setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
@@ -478,33 +569,26 @@ function loadStream(url) {
       .then(() => { unmuteBtn.style.display=audioOnly?'none':'block'; setupMediaSession(); if(!isIOS())requestWakeLock(); })
       .catch(() => setStatus('pressPlay'));
   }
-
-  // Авторефреш токена каждые 20 минут (iptv-bg.com токены истекают)
-  tokenRefreshTimer = setInterval(async () => {
-    if (!currentCh) return;
-    try {
-      const r = await fetch(currentCh.stream + '&t=' + Date.now(), { cache:'no-store' });
-      const d = await r.json();
-      if (d.url) {
-        if (hls) hls.loadSource(d.url);
-        if (hlsAudio) hlsAudio.loadSource(d.url);
-      }
-    } catch(e) {}
-  }, 20 * 60 * 1000);
 }
+function qualityBtnHide() { const b=document.getElementById('quality-btn'); if (b) { b.style.display='none'; b.onclick=null; } const m=document.getElementById('quality-menu'); if (m) m.remove(); }
+
+let _playedOnce = false;
+video.addEventListener('playing', () => { _playedOnce = true; _failStreak = 0; });
 
 async function init() {
   if (!currentCh) return;
   setStatus('loading'); reloadBtn.style.display='none'; unmuteBtn.style.display='none';
   try {
-    const r = await fetch(currentCh.stream + '&t=' + Date.now(), { cache:'no-store' });
+    // Прямая ссылка на CDN (источник отдаёт CORS). После 2 неудач подряд — запасной путь через воркер.
+    const viaProxy = _failStreak >= 2 ? '&proxy=1' : '';
+    const r = await fetch(currentCh.stream + '&t=' + Date.now() + viaProxy, { cache:'no-store' });
     const d = await r.json();
-    if (d.url) loadStream(d.url); else setStatus('errorUrl', true);
-  } catch(e) { setStatus('errorServer', true); }
+    if (d.url) loadStream(d.url); else { setStatus('errorUrl', true); _scheduleInit(2000); }
+  } catch(e) { setStatus('errorServer', true); _scheduleInit(2000); }
 }
 
 // ── Кнопки ─────────────────────────────────────────────────────────────────
-reloadBtn.onclick = () => { userPaused=false; init(); };
+reloadBtn.onclick = () => { userPaused=false; _resetRetry(); init(); };
 unmuteBtn.onclick = () => {
   const ab = document.getElementById('audio-bg');
   if (video.muted) {
@@ -551,6 +635,7 @@ function openChannel(ch) {
   liveBadge.style.background = ch.color.replace(')', ', .9)').replace('rgb', 'rgba');
   audioOnly = false; document.body.classList.remove('audio-only');
   modeBtn.textContent = t.audioMode;
+  _resetRetry(); _playedOnce=false; _forceNative=false; airBtn.textContent='📲 AirPlay';
   stopStream(); init();
 }
 

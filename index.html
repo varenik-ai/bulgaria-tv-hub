@@ -92,7 +92,7 @@
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
   <div class="channels-grid" id="channels-grid"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v13</div>
+  <div style="margin-top:14px;font-size:11px;color:#333">v14 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -773,6 +773,11 @@ async function payStars(amount) {
     tg.openInvoice(d.url, status => { if (status === 'paid') gaEvent('donate_paid', { stars: amount }); });
   } catch (e) {}
 }
+document.getElementById('privacy-link').onclick = e => {
+  if (!IN_TG) return;
+  e.preventDefault();
+  try { tg.openLink(new URL('privacy.html', location.href).href, { try_instant_view: false }); } catch (err) { location.href = 'privacy.html'; }
+};
 document.getElementById('donate-close').onclick = () => { donateModal.style.display = 'none'; };
 donateModal.addEventListener('click', e => { if (e.target === donateModal) donateModal.style.display = 'none'; });
 ['thank-btn-hub', 'thank-btn-player'].forEach(id => {

@@ -92,7 +92,7 @@
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
   <div class="channels-grid" id="channels-grid"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v18 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333">v19 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -133,7 +133,12 @@
 <script>
 const tg = window.Telegram?.WebApp;
 const IN_TG = !!(tg && tg.initData);   // внутри Telegram видео на ТВ не транслируется (AirPlay — только звук, Cast нет)
-const RELAY_URL = '';   // например 'https://bulgaria-relay.<проект>.deno.net' (пусто = ретранслятор не используется)
+// Трансляция на ТВ: телевизор сам скачивает поток без VPN телефона. Из российских сетей cdn3/cdn11/mx86 (OVH) зависают на ~16 КБ,
+// а ro.glebul.com проходит и отдаёт все каналы; токены e=/hash= совместимы между узлами.
+function tvUrl(u) {
+  const m = u.match(/^https:\/\/[^/]+\.glebul\.com\/(?:hlsfhd\/([^/?]+)\.m3u8|hls\/([^/?]+)\/index\.m3u8)(\?.*)?$/);
+  return m ? 'https://ro.glebul.com/hls/' + (m[1] || m[2]) + '/index.m3u8' + (m[3] || '') : u;
+}
 const SITE_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/';
 
 // ── Safe area ──────────────────────────────────────────────────────────────
@@ -277,7 +282,7 @@ const modeBtn      = document.getElementById('mode-btn');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const pipBtn       = document.getElementById('pip-btn');
 const airBtn       = document.getElementById('airplay-btn');
-window.__btv = { inTG: IN_TG, video, getCh: () => currentCh, getUrl: () => window.__curUrl, stop: () => stopStream(), restart: () => { if (currentCh) init(); } };
+window.__btv = { inTG: IN_TG, video, getCh: () => currentCh, getUrl: () => window.__curUrl, tvUrl, stop: () => stopStream(), restart: () => { if (currentCh) init(); } };
 
 let currentCh=null, hls=null, hlsAudio=null, hideTimeout=null;
 let userPaused=false, audioOnly=false, userUnmuted=false, isExpanded=false, wakeLockSentinel=null;
@@ -687,14 +692,12 @@ async function init() {
   if (!currentCh) return;
   setStatus('loading'); reloadBtn.style.display='none'; unmuteBtn.style.display='none';
   try {
-    // Трансляция на ТВ: ТВ сам скачивает поток, а из РФ большие файлы с glebul (OVH/Scaleway) и с доменов Cloudflare зависают.
-    // Если задан RELAY_URL (ретранслятор на доступном хостинге, см. relay/README.md), отдаём ТВ его адрес.
-    if (_forceNative && isIOS() && RELAY_URL) { loadStream(RELAY_URL + '/hls/' + currentCh.id + '.m3u8'); return; }
-    // Прямая ссылка на CDN (источник отдаёт CORS). После 2 неудач подряд — запасной путь через воркер.
-    const viaProxy = _failStreak >= 2 ? '&proxy=1' : '';
+    // Прямая ссылка на CDN (источник отдаёт CORS). После 2 неудач подряд — запасной путь через воркер (не для AirPlay: ТВ не дотянется до воркера).
+    const _tv = _forceNative && isIOS();
+    const viaProxy = _failStreak >= 2 && !_tv ? '&proxy=1' : '';
     const r = await fetch(currentCh.stream + '&t=' + Date.now() + viaProxy, { cache:'no-store' });
     const d = await r.json();
-    if (d.url) loadStream(d.url); else { setStatus('errorUrl', true); _scheduleInit(2000); }
+    if (d.url) loadStream(_tv ? tvUrl(d.url) : d.url); else { setStatus('errorUrl', true); _scheduleInit(2000); }
   } catch(e) { setStatus('errorServer', true); _scheduleInit(2000); }
 }
 

@@ -53,7 +53,7 @@
   function sendMedia() {
     var session = ctx && ctx.getCurrentSession(), ch = B.getCh(), url = B.getUrl();
     if (!session || !ch || !url) return;
-    var mi = new chrome.cast.media.MediaInfo(url, 'application/x-mpegURL');
+    var mi = new chrome.cast.media.MediaInfo(B.tvUrl(url), 'application/x-mpegURL');
     mi.streamType = chrome.cast.media.StreamType.LIVE;
     var md = new chrome.cast.media.GenericMediaMetadata();
     md.title = ch.name;

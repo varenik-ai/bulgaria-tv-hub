@@ -92,7 +92,7 @@
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
   <div class="channels-grid" id="channels-grid"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v19 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333">v20 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -445,7 +445,7 @@ document.addEventListener('visibilitychange', async () => {
     if (isAndroid()) { const a=document.getElementById('audio-bg'); if(a) a.muted=true; }
     if (!userPaused && video.paused) {
       try { await video.play(); } catch(e) { if(currentCh){stopStream();init();} }
-    } else if (!userPaused && video.readyState<2) {
+    } else if (!userPaused && video.readyState<2 && !video.webkitCurrentPlaybackTargetIsWireless) {
       if (currentCh) { stopStream(); init(); }
     }
   }
@@ -655,8 +655,11 @@ function _watchdogReconnect(statusKey) {
   stopStream();
   init().finally(() => { _watchdogReconnecting = false; });
 }
+// Во время AirPlay кадры показывает ТВ: счётчик кадров на телефоне стоит, и сторож сбрасывал бы поток каждые ~10 с
+const _onTv = () => !!video.webkitCurrentPlaybackTargetIsWireless;
+video.addEventListener('webkitcurrentplaybacktargetiswirelesschanged', () => { _lastProgressTime = _lastFrameProgressTime = Date.now(); });
 setInterval(() => {
-  if (window.__castActive) return;
+  if (window.__castActive || _onTv()) return;
   if (!currentCh || video.seeking || _watchdogReconnecting || _gaveUp) return;
   if (video.readyState >= 3 && typeof video.getVideoPlaybackQuality === 'function') {
     const _vpq = video.getVideoPlaybackQuality();

@@ -221,6 +221,26 @@ export default {
       } catch (e) { return new Response('bad path', { status: 400, headers: CORS }); }
     }
 
+    // /tvtest?channel=X&v=mid|hd720&td=12 — диагностика буферизации на ТВ: плейлист источника с шире объявленным TARGETDURATION (источник обновляет его раз в ~11 с), сегменты прямо с ro.glebul.com
+    if (url.pathname === '/tvtest') {
+      const slug = CHANNELS[url.searchParams.get('channel')];
+      if (!slug) return new Response('unknown channel', { status: 404, headers: CORS });
+      const streamUrl = await getStreamUrl(slug);
+      if (!streamUrl) return new Response('no_url', { status: 502, headers: CORS });
+      const u = new URL(streamUrl), q = url.searchParams.get('v') || 'hd720', td = url.searchParams.get('td') || '12';
+      const fhd = u.pathname.startsWith('/hlsfhd/');
+      const path = fhd ? `hlsfhd/${slug}_${q}` : `hls/${slug}`;
+      const r = await fetch(`https://${u.host}/${path}/index.m3u8${u.search}`, { headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.seirsanduk.online/' } });
+      if (!r.ok) return new Response('upstream ' + r.status, { status: 502, headers: CORS });
+      const body = (await r.text()).split('\n').map(line => {
+        const t = line.trim();
+        if (t.startsWith('#EXT-X-TARGETDURATION')) return '#EXT-X-TARGETDURATION:' + td;
+        if (!t || t.startsWith('#')) return line;
+        return `https://ro.glebul.com/${path}/${t.split('?')[0].split('/').pop()}`;
+      }).join('\n');
+      return new Response(body, { headers: { ...CORS, 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-store' } });
+    }
+
     // /airtest?channel=X&mode=... — диагностика AirPlay на ТВ: разные варианты одного потока (см. airtest.html)
     if (url.pathname === '/airtest') {
       const slug = CHANNELS[url.searchParams.get('channel')];

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<title>България ТВ · Авто</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js"></script>
+<style>
+  /* Экран машины: тёмный фон, крупные цели, без прокрутки и без наведения. Версия car-v1 */
+  :root { --bg:#000; --panel:#191b21; --panel2:#262932; --text:#fff; --muted:#b9bdc7; --live:#e5301c; --gap:clamp(8px,1.6vh,14px); --ctl:clamp(68px,18vh,104px); }
+  * { box-sizing:border-box; margin:0; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; user-select:none; -webkit-user-select:none; }
+  html,body { height:100%; background:var(--bg); color:var(--text); overflow:hidden; overscroll-behavior:none; touch-action:manipulation; font:600 clamp(19px,3.9vh,26px)/1.15 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif; }
+  button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+  button:focus { outline:none; }
+  button:focus-visible { outline:4px solid #fff; outline-offset:-4px; }
+  [hidden] { display:none !important; }
+  .screen { position:fixed; inset:0; padding:max(var(--gap),env(safe-area-inset-top)) max(var(--gap),env(safe-area-inset-right)) max(var(--gap),env(safe-area-inset-bottom)) max(var(--gap),env(safe-area-inset-left)); }
+
+  /* Список каналов */
+  #hub { z-index:2; background:var(--bg); display:grid; grid-template-columns:clamp(172px,20vw,240px) 1fr auto; gap:var(--gap); }
+  #rail { display:flex; flex-direction:column; gap:clamp(4px,1vh,8px); min-height:0; }
+  #rail button { flex:1 1 0; min-height:0; border-radius:12px; padding:0 14px; text-align:left; background:var(--panel); color:var(--muted); overflow-wrap:anywhere; }
+  #rail button.on { background:#fff; color:#000; }
+  #rail button.now { background:var(--live); color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #grid { display:grid; gap:var(--gap); min-width:0; min-height:0; }
+  .tile { position:relative; min-width:0; min-height:0; display:flex; flex-direction:column; gap:6px; padding:10px; border-radius:14px; background:var(--panel); overflow:hidden; }
+  .tile:active { background:var(--panel2); }
+  .tile.playing { box-shadow:inset 0 0 0 4px var(--live); }
+  .tile .art { flex:1 1 0; min-height:0; display:flex; align-items:center; justify-content:center; }
+  .tile img { max-width:100%; max-height:100%; object-fit:contain; }
+  .tile .init { font-size:1.7em; font-weight:800; }
+  .tile .name { flex:none; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #pager { width:clamp(68px,9vw,92px); display:flex; flex-direction:column; gap:var(--gap); align-items:stretch; }
+  #pager button { flex:1 1 0; border-radius:14px; background:var(--panel); display:flex; align-items:center; justify-content:center; }
+  #pager button:disabled { opacity:.3; }
+  #pageno { flex:none; text-align:center; color:var(--muted); font-size:.85em; }
+  svg { width:1.5em; height:1.5em; fill:currentColor; flex:none; }
+
+  /* Плеер */
+  #player { z-index:1; background:#000; padding:0; }
+  video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; }
+  #player.audio video { opacity:0; pointer-events:none; }
+  #audioView { position:absolute; inset:0 0 calc(var(--ctl) + 2 * var(--gap)) 0; display:flex; align-items:center; justify-content:center; gap:clamp(20px,4vw,48px); padding:var(--gap) 5vw; }
+  #player.video #audioView { display:none; }
+  #audioArt { width:clamp(120px,36vh,260px); height:clamp(120px,36vh,260px); border-radius:22px; background:var(--panel); padding:18px; display:flex; align-items:center; justify-content:center; flex:none; font-size:2em; font-weight:800; }
+  #audioArt img { max-width:100%; max-height:100%; object-fit:contain; }
+  #audioName { font-size:1.9em; font-weight:800; line-height:1.1; }
+  .sub { color:var(--muted); margin-top:.4em; }
+  .badge { display:inline-block; padding:.15em .55em; border-radius:7px; background:var(--live); color:#fff; font-size:.75em; font-weight:800; }
+  #videoTop { position:absolute; top:0; left:0; right:0; padding:var(--gap) 18px 34px; background:linear-gradient(#000c,#0000); display:flex; align-items:center; gap:12px; pointer-events:none; }
+  #player.audio #videoTop { display:none; }
+  #controls { position:absolute; left:var(--gap); right:var(--gap); bottom:max(var(--gap),env(safe-area-inset-bottom)); height:var(--ctl); display:grid; grid-template-columns:repeat(5,1fr); gap:var(--gap); }
+  #controls button { min-width:0; border-radius:14px; background:#22252ded; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:.82em; white-space:nowrap; overflow:hidden; }
+  #controls button:active { background:#3a3e4a; }
+  #player.video.idle #controls, #player.video.idle #videoTop { opacity:0; pointer-events:none; }
+  #msg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); padding:.7em 1.2em; border-radius:14px; background:#000c; text-align:center; pointer-events:none; }
+  #player.audio #msg { display:none; }
+  #soundBtn { position:absolute; top:42%; left:50%; transform:translate(-50%,-50%); z-index:3; padding:.9em 1.5em; border-radius:16px; background:#fff; color:#000; font-weight:800; white-space:nowrap; }
+</style>
+</head>
+<body>
+<main id="hub" class="screen">
+  <nav id="rail"></nav>
+  <div id="grid"></div>
+  <div id="pager" hidden>
+    <button id="pgUp" aria-label="up"><svg viewBox="0 0 24 24"><path d="M12 6 3 17h18z"/></svg></button>
+    <div id="pageno"></div>
+    <button id="pgDown" aria-label="down"><svg viewBox="0 0 24 24"><path d="M12 18 3 7h18z"/></svg></button>
+  </div>
+</main>
+<section id="player" class="screen audio" hidden>
+  <video id="v" playsinline webkit-playsinline preload="auto"></video>
+  <div id="audioView">
+    <div id="audioArt"></div>
+    <div><div id="audioName"></div><div class="sub" id="audioState"></div></div>
+  </div>
+  <div id="videoTop"><span class="badge">LIVE</span><span id="videoName"></span></div>
+  <div id="msg" hidden></div>
+  <button id="soundBtn" hidden></button>
+  <div id="controls">
+    <button id="cBack"></button><button id="cPrev"></button><button id="cPause"></button><button id="cNext"></button><button id="cMode"></button>
+  </div>
+</section>
+<script>
+'use strict';
+// Каналы скопированы из index.html (CHANNEL_GROUPS). Добавили канал там: добавь и здесь.
+const PROXY = 'https://bulgaria-worker.dyaltd.workers.dev';
+const GROUPS = [[{"id":"btv","name":"bTV","icon":"bTV","color":"#2980b9","logo":"logos/btv.png"},{"id":"novatv","name":"Nova TV","icon":"NTV","color":"#e74c3c","logo":"logos/novatv.png"},{"id":"bnt1","name":"БНТ 1","icon":"БНТ1","color":"#1565c0","logo":"logos/bnt1.png"},{"id":"bnt2","name":"БНТ 2","icon":"БНТ2","color":"#1976d2","logo":"logos/bnt2.png"},{"id":"bnt3","name":"БНТ 3","icon":"БНТ3","color":"#1e88e5","logo":"logos/bnt3.png"},{"id":"bnt4","name":"БНТ 4","icon":"БНТ4","color":"#42a5f5","logo":"logos/bnt4.png"},{"id":"bulgariaonair","name":"Bulgaria On Air","icon":"BOA","color":"#00838f","logo":"logos/bulgariaonair.png"},{"id":"novanews","name":"Nova News","icon":"NN","color":"#d32f2f","logo":"logos/novanews.png"},{"id":"euronews","name":"Euronews BG","icon":"EN","color":"#0d47a1"}],
+  [{"id":"novasport","name":"Nova Sport","icon":"NS","color":"#27ae60","logo":"logos/novasport.png"},{"id":"diemasport","name":"Diema Sport","icon":"DS","color":"#2e7d32","logo":"logos/diemasport.png"},{"id":"diemasport2","name":"Diema Sport 2","icon":"DS2","color":"#388e3c","logo":"logos/diemasport2.png"},{"id":"diemasport3","name":"Diema Sport 3","icon":"DS3","color":"#43a047","logo":"logos/diemasport3.png"},{"id":"maxsport1","name":"Max Sport 1","icon":"MS1","color":"#558b2f","logo":"logos/maxsport1.png"},{"id":"maxsport2","name":"Max Sport 2","icon":"MS2","color":"#689f38","logo":"logos/maxsport2.png"},{"id":"eurosport1","name":"Eurosport 1","icon":"ES1","color":"#f57f17","logo":"logos/eurosport1.png"},{"id":"eurosport2","name":"Eurosport 2","icon":"ES2","color":"#f9a825","logo":"logos/eurosport2.png"}],
+  [{"id":"kinonova","name":"Kino Nova","icon":"KN","color":"#e67e22","logo":"logos/kinonova.png"},{"id":"diema","name":"Diema","icon":"DM","color":"#e53935","logo":"logos/diema.png"},{"id":"diemafamily","name":"Diema Family","icon":"DMF","color":"#fb8c00","logo":"logos/diemafamily.png"},{"id":"btvcinema","name":"bTV Cinema","icon":"CIN","color":"#c0392b","logo":"logos/btvcinema.png"},{"id":"btvaction","name":"bTV Action","icon":"ACT","color":"#8e44ad","logo":"logos/btvaction.png"},{"id":"btvcomedy","name":"bTV Comedy","icon":"COM","color":"#f39c12","logo":"logos/btvcomedy.png"},{"id":"btvstory","name":"bTV Story","icon":"STR","color":"#d4ac0d"},{"id":"axn","name":"AXN","icon":"AXN","color":"#b71c1c","logo":"logos/axn.png"},{"id":"starchannel","name":"Star Channel","icon":"ST","color":"#ffd600","logo":"logos/starchannel.png"}],
+  [{"id":"discovery","name":"Discovery","icon":"DSC","color":"#0288d1","logo":"logos/discovery.png"},{"id":"natgeo","name":"Nat Geo","icon":"NGO","color":"#f9a825","logo":"logos/natgeo.png"},{"id":"tlc","name":"TLC","icon":"TLC","color":"#00acc1","logo":"logos/tlc.png"},{"id":"ringbg","name":"Ring BG","icon":"RNG","color":"#7b1fa2","logo":"logos/ringbg.png"}],
+  [{"id":"cartoon","name":"Cartoon Network","icon":"CN","color":"#e53935","logo":"logos/cartoon.png"},{"id":"disney","name":"Disney Channel","icon":"DIS","color":"#1976d2","logo":"logos/disney.png"},{"id":"nickelodeon","name":"Nickelodeon","icon":"NIK","color":"#ff6f00","logo":"logos/nickelodeon.png"},{"id":"nickjr","name":"Nick Jr","icon":"NJR","color":"#ff8f00","logo":"logos/nickjr.png"}],
+  [{"id":"planeta","name":"Планета HD","icon":"ПЛ","color":"#e91e63","logo":"logos/planeta.png"},{"id":"planetafolk","name":"Планета Фолк","icon":"ПФ","color":"#c2185b","logo":"logos/planetafolk.png"},{"id":"thevoice","name":"The Voice","icon":"TV","color":"#ab47bc","logo":"logos/thevoice.png"},{"id":"folklortv","name":"Фолклор ТВ","icon":"ФТ","color":"#6a1f7a","logo":"logos/folklortv.png"}]];
+const I18N = {
+  bg:{ recent:'Последни', groups:['Новини','Спорт','Филми','Документални','Детски','Музика'], channels:'Канали', prev:'Предишен', next:'Следващ', pause:'Пауза', play:'Пусни', video:'Видео', audio:'Само звук', connecting:'Свързване…', live:'В ефир', paused:'На пауза', retry:'Няма връзка, опитваме отново…', sound:'Включи звука' },
+  ru:{ recent:'Недавние', groups:['Новости','Спорт','Кино','Док. фильмы','Детские','Музыка'], channels:'Каналы', prev:'Предыдущий', next:'Следующий', pause:'Пауза', play:'Пуск', video:'Видео', audio:'Только звук', connecting:'Подключаемся…', live:'В эфире', paused:'На паузе', retry:'Нет связи, пробуем снова…', sound:'Включить звук' },
+  en:{ recent:'Recent', groups:['News','Sport','Movies','Documentary','Kids','Music'], channels:'Channels', prev:'Previous', next:'Next', pause:'Pause', play:'Play', video:'Video', audio:'Audio only', connecting:'Connecting…', live:'On air', paused:'Paused', retry:'No connection, retrying…', sound:'Turn sound on' },
+  de:{ recent:'Zuletzt', groups:['Nachrichten','Sport','Filme','Doku','Kinder','Musik'], channels:'Kanäle', prev:'Zurück', next:'Weiter', pause:'Pause', play:'Start', video:'Video', audio:'Nur Ton', connecting:'Verbinden…', live:'Live', paused:'Pausiert', retry:'Keine Verbindung, neuer Versuch…', sound:'Ton einschalten' },
+  fr:{ recent:'Récents', groups:['Infos','Sport','Films','Documentaires','Enfants','Musique'], channels:'Chaînes', prev:'Précédente', next:'Suivante', pause:'Pause', play:'Lecture', video:'Vidéo', audio:'Son seul', connecting:'Connexion…', live:'En direct', paused:'En pause', retry:'Pas de connexion, nouvel essai…', sound:'Activer le son' },
+  es:{ recent:'Recientes', groups:['Noticias','Deporte','Cine','Documentales','Infantil','Música'], channels:'Canales', prev:'Anterior', next:'Siguiente', pause:'Pausa', play:'Reproducir', video:'Vídeo', audio:'Solo audio', connecting:'Conectando…', live:'En directo', paused:'En pausa', retry:'Sin conexión, reintentando…', sound:'Activar sonido' },
+  uk:{ recent:'Нещодавні', groups:['Новини','Спорт','Кіно','Док. фільми','Дитячі','Музика'], channels:'Канали', prev:'Попередній', next:'Наступний', pause:'Пауза', play:'Пуск', video:'Відео', audio:'Лише звук', connecting:'Підключаємось…', live:'В ефірі', paused:'На паузі', retry:'Немає зв’язку, пробуємо знову…', sound:'Увімкнути звук' },
+  tr:{ recent:'Son izlenen', groups:['Haber','Spor','Film','Belgesel','Çocuk','Müzik'], channels:'Kanallar', prev:'Önceki', next:'Sonraki', pause:'Duraklat', play:'Oynat', video:'Video', audio:'Yalnız ses', connecting:'Bağlanıyor…', live:'Yayında', paused:'Duraklatıldı', retry:'Bağlantı yok, yeniden deneniyor…', sound:'Sesi aç' },
+};
+const t = I18N[(navigator.language || 'en').split('-')[0].toLowerCase()] || I18N.en;
+const $ = id => document.getElementById(id);
+const ICON = {
+  back:'<path d="M4 5h16v2H4zm0 6h16v2H4zm0 6h16v2H4z"/>',
+  prev:'<path d="M6 5h2.5v14H6zM20 5v14L9.5 12z"/>',
+  next:'<path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z"/>',
+  pause:'<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>',
+  play:'<path d="M7 4v16l13-8z"/>',
+  video:'<path d="M3 6h13v12H3zm14 4.5L22 7v10l-5-3.5z"/>',
+  audio:'<path d="M4 9v6h4l6 5V4L8 9zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/>',
+};
+const setCtl = (el, icon, label) => { el.innerHTML = '<svg viewBox="0 0 24 24">' + ICON[icon] + '</svg><span>' + label + '</span>'; el.setAttribute('aria-label', label); };
+const ALL = GROUPS.flat();
+const byId = id => ALL.find(c => c.id === id);
+const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} } };
+
+const hub = $('hub'), player = $('player'), rail = $('rail'), grid = $('grid'), pager = $('pager'), video = $('v');
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let recent = (store.get('btvcar.recent') || []).filter(byId);
+let tab = recent.length ? -1 : 0, page = 0, pageSize = 8;
+let current = null, playlist = [], hls = null, tuneId = 0, retryTimer = 0, failStreak = 0, paused = false, wakeLock = null;
+let lastProgress = 0, played = false, idleTimer = 0;
+let mode = 'audio';   // при каждом запуске начинаем со звука: видео смотрят на стоянке
+
+// ── Список ─────────────────────────────────────────────────────
+const artHtml = c => c.logo ? '<img src="' + c.logo + '" alt="">' : '<span class="init">' + c.icon + '</span>';
+const tabList = () => tab === -1 ? recent.map(byId) : GROUPS[tab];
+
+function renderRail() {
+  rail.innerHTML = '';
+  const add = (label, cls, fn) => { const b = document.createElement('button'); b.textContent = label; b.className = cls; b.onclick = fn; rail.appendChild(b); };
+  if (current) add('▶ ' + current.name, 'now', showPlayer);
+  if (recent.length) add(t.recent, tab === -1 ? 'on' : '', () => setTab(-1));
+  t.groups.forEach((g, i) => add(g, tab === i ? 'on' : '', () => setTab(i)));
+}
+function setTab(i) { tab = i; page = 0; renderRail(); renderGrid(); const on = rail.querySelector('.on'); if (on) on.focus({ preventScroll:true }); }
+
+function renderGrid() {
+  const list = tabList();
+  // Размер плитки подбираем под экран: на широких дисплеях больше колонок, на низких меньше рядов
+  pager.hidden = true;
+  let cols, rows, pages;
+  const measure = () => {
+    const r = grid.getBoundingClientRect();
+    // Не больше трёх рядов, ширина плитки от её высоты: на большом экране плитки крупнее, а не мельче
+    rows = Math.min(3, Math.max(1, Math.floor((r.height + 10) / 128)));
+    cols = Math.max(2, Math.floor((r.width + 10) / Math.max(180, (r.height / rows) * 1.25)));
+    pageSize = cols * rows;
+    pages = Math.max(1, Math.ceil(list.length / pageSize));
+  };
+  measure();
+  if (pages > 1) { pager.hidden = false; measure(); }
+  page = Math.min(page, pages - 1);
+  grid.style.gridTemplateColumns = 'repeat(' + cols + ',minmax(0,1fr))';
+  grid.style.gridTemplateRows = 'repeat(' + rows + ',minmax(0,1fr))';
+  grid.innerHTML = '';
+  list.slice(page * pageSize, (page + 1) * pageSize).forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'tile' + (current && current.id === c.id ? ' playing' : '');
+    b.innerHTML = '<div class="art">' + artHtml(c) + '</div><div class="name"></div>';
+    b.querySelector('.name').textContent = c.name;
+    const im = b.querySelector('img');
+    if (im) im.onerror = () => { im.parentElement.innerHTML = '<span class="init">' + c.icon + '</span>'; };
+    b.onclick = () => openChannel(c, tab === -1 ? ALL : list.slice());   // в «Недавних» каналов мало: листаем по всем
+    grid.appendChild(b);
+  });
+  $('pageno').textContent = (page + 1) + '/' + pages;
+  $('pgUp').disabled = page === 0;
+  $('pgDown').disabled = page >= pages - 1;
+}
+function turnPage(d) { const before = page; page += d; renderGrid(); return before !== page; }
+$('pgUp').onclick = () => turnPage(-1);
+$('pgDown').onclick = () => turnPage(1);
+let swipeY = null;
+grid.addEventListener('touchstart', e => { swipeY = e.touches[0].clientY; }, { passive:true });
+grid.addEventListener('touchend', e => {
+  if (swipeY === null) return;
+  const dy = e.changedTouches[0].clientY - swipeY; swipeY = null;
+  if (Math.abs(dy) > 50) turnPage(dy < 0 ? 1 : -1);
+}, { passive:true });
+
+// ── Плеер ──────────────────────────────────────────────────────
+function showPlayer() { hub.hidden = true; player.hidden = false; showControls(); $('cPause').focus({ preventScroll:true }); }
+function showHub() { player.hidden = false; hub.hidden = false; renderRail(); renderGrid(); const on = rail.querySelector('.on'); if (on) on.focus({ preventScroll:true }); }
+
+function openChannel(c, list) {
+  if (current && current.id === c.id && !paused) { showPlayer(); return; }
+  current = c; playlist = list && list.length ? list : (playlist.length ? playlist : ALL);
+  recent = [c.id].concat(recent.filter(id => id !== c.id)).slice(0, 12);
+  store.set('btvcar.recent', recent);
+  // Звук разрешаем прямо в жесте нажатия, поток придёт позже
+  video.muted = false; video.volume = 1;
+  try { const p = video.play(); if (p) p.catch(() => {}); } catch (e) {}
+  $('soundBtn').hidden = true; paused = false; failStreak = 0;
+  $('audioArt').innerHTML = artHtml(c);
+  $('audioName').textContent = c.name; $('videoName').textContent = c.name;
+  setPauseBtn(); showPlayer(); tune();
+}
+function step(d) {
+  if (!current) return;
+  const i = playlist.findIndex(c => c.id === current.id);
+  openChannel(playlist[(i + d + playlist.length) % playlist.length], playlist);
+}
+function setState(text, showInVideo) {
+  $('audioState').textContent = text;
+  $('msg').textContent = text; $('msg').hidden = !showInVideo;
+}
+function stopStream() {
+  clearTimeout(retryTimer);
+  if (hls) { hls.destroy(); hls = null; }
+  video.removeAttribute('src');
+  try { video.load(); } catch (e) {}
+}
+function scheduleRetry() {
+  const delay = [2, 4, 8, 15][Math.min(failStreak, 3)] * 1000;
+  failStreak++;
+  setState(t.retry, true);
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(tune, delay);
+}
+async function tune() {
+  if (!current || paused) return;
+  const id = ++tuneId;
+  stopStream();
+  setState(t.connecting, true);
+  played = false; lastProgress = Date.now();
+  try {
+    const proxy = failStreak >= 2 ? '&proxy=1' : '';
+    const r = await fetch(PROXY + '/stream?channel=' + current.id + '&t=' + Date.now() + proxy, { cache:'no-store' });
+    const d = await r.json();
+    if (id !== tuneId) return;
+    if (d.url) loadStream(d.url); else scheduleRetry();
+  } catch (e) { if (id === tuneId) scheduleRetry(); }
+}
+function start() {
+  video.muted = false;
+  const p = video.play();
+  if (p) p.catch(err => {
+    if (err && err.name === 'NotAllowedError') {
+      // Браузер не дал звук без жеста: показываем картинку без звука и большую кнопку
+      video.muted = true; video.play().catch(() => {});
+      $('soundBtn').hidden = false;
+    }
+  });
+}
+function loadStream(url) {
+  lastProgress = Date.now();
+  if (!isIOS && window.Hls && Hls.isSupported()) {
+    hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30, capLevelToPlayerSize:true, startLevel:0, abrEwmaDefaultEstimate:500000, manifestLoadingMaxRetry:4, fragLoadingRetryDelay:500 });
+    hls.loadSource(url); hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, start);
+    hls.on(Hls.Events.ERROR, (e, data) => {
+      if (!data.fatal) return;
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR && played) { try { hls.startLoad(); } catch (err) {} return; }
+      if (data.type === Hls.ErrorTypes.MEDIA_ERROR) { try { hls.recoverMediaError(); } catch (err) {} return; }
+      scheduleRetry();
+    });
+  } else {
+    video.src = url; start();
+  }
+}
+video.addEventListener('playing', () => { played = true; failStreak = 0; lastProgress = Date.now(); setState(t.live, false); setupMedia(); keepAwake(); });
+video.addEventListener('timeupdate', () => { lastProgress = Date.now(); });
+video.addEventListener('error', () => { if (current && !paused && video.getAttribute('src')) scheduleRetry(); });
+// Туннели и пропадание связи: без действий водителя возвращаем эфир
+setInterval(() => {
+  if (!current || paused) return;
+  if (Date.now() - lastProgress > (played ? 15000 : 30000)) { failStreak++; tune(); }
+}, 5000);
+window.addEventListener('online', () => { if (current && !paused && !played) { failStreak = 0; tune(); } });
+
+function setPauseBtn() { setCtl($('cPause'), paused ? 'play' : 'pause', paused ? t.play : t.pause); }
+function togglePause() {
+  paused = !paused; setPauseBtn();
+  if (paused) { tuneId++; stopStream(); setState(t.paused, true); }
+  else { video.muted = false; failStreak = 0; tune(); }
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = paused ? 'paused' : 'playing';
+}
+function setMode(m) {
+  mode = m;
+  player.classList.toggle('audio', m === 'audio');
+  player.classList.toggle('video', m === 'video');
+  setCtl($('cMode'), m === 'audio' ? 'video' : 'audio', m === 'audio' ? t.video : t.audio);
+  showControls();
+}
+function showControls() {
+  player.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => { if (mode === 'video' && !paused && hub.hidden) player.classList.add('idle'); }, 5000);
+}
+player.addEventListener('click', e => {
+  if (mode !== 'video') return;
+  // composedPath: кнопка могла перерисовать свою иконку, и e.target уже вне документа
+  if (e.composedPath().some(n => n.tagName === 'BUTTON')) { showControls(); return; }
+  if (player.classList.contains('idle')) showControls(); else { clearTimeout(idleTimer); player.classList.add('idle'); }
+});
+$('soundBtn').textContent = t.sound;
+$('soundBtn').onclick = () => { video.muted = false; video.volume = 1; video.play().catch(() => {}); $('soundBtn').hidden = true; };
+$('cBack').onclick = showHub;
+$('cPrev').onclick = () => step(-1);
+$('cNext').onclick = () => step(1);
+$('cPause').onclick = togglePause;
+$('cMode').onclick = () => setMode(mode === 'audio' ? 'video' : 'audio');
+setCtl($('cBack'), 'back', t.channels);
+setCtl($('cPrev'), 'prev', t.prev);
+setCtl($('cNext'), 'next', t.next);
+
+// Кнопки на руле и экран «Исполняется»
+function setupMedia() {
+  if (!('mediaSession' in navigator) || !current) return;
+  const art = current.logo ? [{ src:new URL(current.logo, location.href).href, sizes:'512x512', type:'image/png' }] : [];
+  navigator.mediaSession.metadata = new MediaMetadata({ title:current.name, artist:'България ТВ', artwork:art });
+  navigator.mediaSession.playbackState = 'playing';
+}
+if ('mediaSession' in navigator) {
+  const on = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+  on('previoustrack', () => step(-1));
+  on('nexttrack', () => step(1));
+  on('play', () => { if (paused) togglePause(); else video.play().catch(() => {}); });
+  on('pause', () => { if (!paused) togglePause(); });
+}
+async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && current && !paused) keepAwake(); });
+
+// ── Управление крутилкой и стрелками ───────────────────────────
+function focusables() {
+  const root = hub.hidden ? player : hub;
+  return [...root.querySelectorAll('button')].filter(b => !b.disabled && b.offsetParent !== null);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' || e.key === 'Backspace') { if (hub.hidden) showHub(); e.preventDefault(); return; }
+  const dir = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] }[e.key];
+  if (!dir) return;
+  e.preventDefault();
+  if (hub.hidden) showControls();
+  const list = focusables();
+  const a = document.activeElement;
+  if (!list.includes(a)) { if (list[0]) list[0].focus(); return; }
+  const ar = a.getBoundingClientRect(), ax = ar.left + ar.width / 2, ay = ar.top + ar.height / 2;
+  let best = null, bestScore = Infinity;
+  list.forEach(b => {
+    if (b === a) return;
+    const r = b.getBoundingClientRect(), dx = r.left + r.width / 2 - ax, dy = r.top + r.height / 2 - ay;
+    const along = dx * dir[0] + dy * dir[1];
+    if (along <= 1) return;
+    const across = Math.abs(dx * dir[1]) + Math.abs(dy * dir[0]);
+    const score = along + across * 2.5;
+    if (score < bestScore) { bestScore = score; best = b; }
+  });
+  if (best) best.focus();
+});
+
+window.addEventListener('resize', () => { if (!hub.hidden) renderGrid(); });
+setMode('audio');
+renderRail(); renderGrid();
+const first = rail.querySelector('button'); if (first) first.focus({ preventScroll:true });
+window.__car = { get current() { return current; }, get mode() { return mode; }, get page() { return page; }, get pageSize() { return pageSize; } };
+</script>
+</body>
+</html>

@@ -140,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v26 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v27 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -289,6 +289,9 @@ const modeBtn      = document.getElementById('mode-btn');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const pipBtn       = document.getElementById('pip-btn');
 const airBtn       = document.getElementById('airplay-btn');
+// v27: AirPlay по возможности, а не по типу устройства. Кнопка «📲 AirPlay» и нативный плеер с узлом для ТВ там, где
+// есть системный выбор ТВ и нативный HLS: iPhone/iPad, а также Mac (Telegram, Safari). Иначе «📺 На ТВ» / Cast, как раньше.
+const _airCapable = isIOS() || (typeof video.webkitShowPlaybackTargetPicker === 'function' && !!video.canPlayType('application/vnd.apple.mpegurl'));
 window.__btv = { inTG: IN_TG, video, getCh: () => currentCh, getUrl: () => window.__curUrl, tvUrl, stop: () => stopStream(), restart: () => { if (currentCh) init(); } };
 
 let currentCh=null, hls=null, hlsAudio=null, hideTimeout=null;
@@ -401,7 +404,7 @@ pipBtn.onclick = async () => {
 // Android/Desktop в Telegram: Cast из WebView невозможен — открываем канал во внешнем браузере (Chrome), где работает Cast.
 // На iOS эту задачу выполняет кнопка AirPlay (как в эталоне). Порядок открытия как в эталоне: window.open, запасной путь tg.openLink.
 const tvBtn = document.getElementById('tv-btn');
-if (IN_TG && !isIOS()) {
+if (IN_TG && !_airCapable) {
   tvBtn.textContent = t.tv; tvBtn.style.display = '';
   tvBtn.onclick = () => {
     const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
@@ -537,8 +540,8 @@ function initQuality(h) {
 // не отдаёт AirPlay API — кнопка открывает страницу канала в Safari, где AirPlay есть.
 // v23 (как в tv-indonesia): нажатие сразу открывает системный выбор ТВ. На iPhone канал всегда играет в нативном плеере
 // (выбор ТВ работает только с ним, из hls.js на ТВ уходит один звук) и с узла, доступного телевизору (tvUrl, см. v19).
-let _forceNative = isIOS();
-if (isIOS()) {
+let _forceNative = _airCapable;
+if (_airCapable) {
   try { video.setAttribute('x-webkit-airplay', 'allow'); video.disableRemotePlayback = false; } catch (e) {}
   const airVis = () => { airBtn.style.display = currentCh ? 'block' : 'none'; };
   ['loadstart', 'playing'].forEach(ev => video.addEventListener(ev, airVis));
@@ -582,7 +585,7 @@ function loadStream(url) {
   }
 
   setMuted(!_soundWanted);   // v23: звук сразу; для AirPlay он и должен быть включён
-  const _native = _forceNative && isIOS() && !!video.canPlayType('application/vnd.apple.mpegurl');
+  const _native = _forceNative && !!video.canPlayType('application/vnd.apple.mpegurl');
   if (Hls.isSupported() && !_native) {
     hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30,
       capLevelToPlayerSize:true, startLevel:0, abrEwmaDefaultEstimate:500000, manifestLoadingMaxRetry:4, fragLoadingRetryDelay:500 });
@@ -711,7 +714,7 @@ async function init() {
   setStatus('loading'); reloadBtn.style.display='none'; unmuteBtn.style.display='none';
   try {
     // Прямая ссылка на CDN (источник отдаёт CORS). После 2 неудач подряд — запасной путь через воркер (не для AirPlay: ТВ не дотянется до воркера).
-    const _tv = _forceNative && isIOS();
+    const _tv = _forceNative;
     const viaProxy = _failStreak >= 2 && !(_tv && _onTv()) ? '&proxy=1' : '';
     const r = await fetch(currentCh.stream + '&t=' + Date.now() + viaProxy, { cache:'no-store' });
     const d = await r.json();

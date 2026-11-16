@@ -23,7 +23,7 @@
     .app { max-width:720px; margin:0 auto; }
 
     /* ── Плеер сверху, прилипает при прокрутке (как в мини-аппе tv-indonesia) ── */
-    #pl { position:sticky; top:0; z-index:20; background:#0a0a14; display:none; padding-top:max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px)); }
+    #pl { position:sticky; top:0; z-index:20; background:#0a0a14; display:none; }
     .bar { display:flex; align-items:center; gap:8px; padding:8px 12px 0; }
     .bar .t { flex:1; min-width:0; }
     .bar h1 { font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -34,7 +34,7 @@
     .controls::-webkit-scrollbar { display:none; }
 
     /* ── Список каналов ── */
-    #hub-screen { padding:10px 12px 40px; padding-top:calc(10px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); }
+    #hub-screen { padding:10px 12px 40px; }
     body.playing #hub-screen { padding-top:10px; }
     .hub-logo { font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
     .hub-logo .green { color:#00966E; }
@@ -140,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v25 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v26 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -161,28 +161,8 @@ function tvUrl(u) {
 }
 const SITE_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/';
 
-// ── Safe area ──────────────────────────────────────────────────────────────
-function updateSafeArea() {
-  const tgTop = tg?.contentSafeAreaInsets?.top || tg?.safeAreaInsets?.top || 0;
-  const top = tgTop > 0 ? tgTop : (document.fullscreenElement || tg?.isFullscreen ? 32 : 0);
-  document.documentElement.style.setProperty('--tg-safe-top', top + 'px');
-}
-if (tg) {
-  tg.ready(); tg.expand();
-  try { tg.disableVerticalSwipes(); } catch(e) {}
-  try { tg.setHeaderColor('#000000'); } catch(e) {}
-  try { tg.setBackgroundColor('#000000'); } catch(e) {}
-  // v24 (как в tv-indonesia): без полноэкранного режима Telegram при запуске. В нём кнопки Telegram «Назад»/«Закрыть»
-  // висят поверх плеера; в обычном режиме «Назад» стоит в шапке Telegram над мини-аппом.
-  // v25: Telegram сам открывает мини-апп в полноэкранном режиме (настройка запуска бота), поэтому выходим из него,
-  // чтобы шапка Telegram с «Закрыть»/«Назад» была над мини-аппом, как в tv-indonesia, а не поверх названия и плеера.
-  const _leaveTgFs = () => { try { if (tg.isFullscreen && tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) tg.exitFullscreen(); } catch (e) {} };
-  _leaveTgFs(); setTimeout(_leaveTgFs, 300);
-  try { tg.onEvent('safeAreaChanged', updateSafeArea); } catch(e) {}
-  try { tg.onEvent('contentSafeAreaChanged', updateSafeArea); } catch(e) {}
-  setTimeout(updateSafeArea, 500);
-  setTimeout(() => { try { plh(); } catch (e) {} }, 600);
-}
+// v26: запуск в Telegram 1:1 как в мини-аппе tv-indonesia (и russia-tv-hub): только ready, expand и цвет шапки из темы
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('secondary_bg_color'); } catch (e) {} }
 
 // ── Определение платформы ──────────────────────────────────────────────────
 function isIOS() {
@@ -794,8 +774,7 @@ function buildHub() {
 function markRows() { [...listEl.querySelectorAll('.row')].forEach(r => r.classList.toggle('on', !!currentCh && r.dataset.id === currentCh.id)); }
 // Высота плеера: категории прилипают под ним
 function plh() {
-  const safe = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tg-safe-top')) || 0;
-  document.documentElement.style.setProperty('--plh', (plEl.style.display === 'block' ? plEl.offsetHeight : safe) + 'px');
+  document.documentElement.style.setProperty('--plh', (plEl.style.display === 'block' ? plEl.offsetHeight : 0) + 'px');
 }
 window.addEventListener('resize', plh);
 // Высота плеера меняется, когда появляются статус и кнопки: следим за ней

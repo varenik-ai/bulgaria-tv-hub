@@ -86,6 +86,7 @@
     .btn.danger { background:#00966E; }
     .btn.air-next { background:#D62612; }
     .btn.reload { background:#333; }
+    #unmute-btn { display:none !important; }   /* v23: звук включается сразу, выключается в панели видео */
 
     #status { font-size:12px; color:#888; padding:6px 12px 0; }
     .dot { display:inline-block; width:8px; height:8px; background:#00966E; border-radius:50%; margin-right:6px; animation:pulse 1.2s infinite; vertical-align:middle; }
@@ -107,7 +108,7 @@
   <div id="video-container">
     <div class="live-badge" id="live-badge"><span class="dot"></span> НА ЖИВО</div>
     <div id="audio-badge"><div class="pill">🎧 Аудио режим</div></div>
-    <video id="video" autoplay playsinline webkit-playsinline airplay="allow" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;"></video>
+    <video id="video" controls autoplay playsinline webkit-playsinline airplay="allow" x-webkit-airplay="allow" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;"></video>
     <div class="overlay" id="overlay"></div>
     <audio id="audio-bg" muted></audio>
   </div>
@@ -119,7 +120,7 @@
   <div id="status"></div>
   <div class="controls" id="acts">
     <button id="reload-btn" class="btn reload" style="display:none"></button>
-    <button id="unmute-btn" class="btn danger" style="display:none"></button>
+    <button id="unmute-btn" class="btn danger" hidden></button>
     <button id="airplay-btn" class="btn" style="display:none">📲 AirPlay</button>
     <button id="cast-btn" class="btn" style="display:none">📡 Cast</button>
     <button id="tv-btn" class="btn" style="display:none"></button>
@@ -139,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v22 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v23 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -262,14 +263,14 @@ const CHANNEL_GROUPS = [
 
 // ── Преводи ────────────────────────────────────────────────────────────────
 const T = {
-  bg:{ search:'Търси канал…', all:'Всички', none:'Няма намерени канали', share:'↗ Сподели', tv:'📺 На ТВ', airAgain:'📲 Натиснете отново, за да изберете ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  ru:{ search:'Поиск канала…', all:'Все', none:'Каналы не найдены', share:'↗ Поделиться', tv:'📺 На ТВ', airAgain:'📲 Нажмите ещё раз, чтобы выбрать ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  en:{ search:'Search channels…', all:'All', none:'No channels found', share:'↗ Share', tv:'📺 To TV', airAgain:'📲 Tap again to choose your TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  de:{ search:'Kanal suchen…', all:'Alle', none:'Keine Kanäle gefunden', share:'↗ Teilen', tv:'📺 Auf den TV', airAgain:'📲 Nochmal tippen, um den TV zu wählen', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  fr:{ search:'Rechercher une chaîne…', all:'Toutes', none:'Aucune chaîne trouvée', share:'↗ Partager', tv:'📺 Sur la TV', airAgain:'📲 Touchez encore pour choisir la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
-  es:{ search:'Buscar canal…', all:'Todos', none:'No se encontraron canales', share:'↗ Compartir', tv:'📺 A la TV', airAgain:'📲 Toca otra vez para elegir la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  uk:{ search:'Пошук каналу…', all:'Усі', none:'Канали не знайдено', share:'↗ Поділитися', tv:'📺 На ТБ', airAgain:'📲 Натисніть ще раз, щоб вибрати ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
-  tr:{ search:'Kanal ara…', all:'Tümü', none:'Kanal bulunamadı', share:'↗ Paylaş', tv:'📺 TV’ye', airAgain:'📲 TV’yi seçmek için tekrar dokunun', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
+  bg:{ airHint:'Отваряме браузъра: изберете телевизора с бутона AirPlay там', search:'Търси канал…', all:'Всички', none:'Няма намерени канали', share:'↗ Сподели', tv:'📺 На ТВ', airAgain:'📲 Натиснете отново, за да изберете ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  ru:{ airHint:'Открываем браузер: выберите телевизор кнопкой AirPlay там', search:'Поиск канала…', all:'Все', none:'Каналы не найдены', share:'↗ Поделиться', tv:'📺 На ТВ', airAgain:'📲 Нажмите ещё раз, чтобы выбрать ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  en:{ airHint:'Opening your browser: choose your TV with the AirPlay button there', search:'Search channels…', all:'All', none:'No channels found', share:'↗ Share', tv:'📺 To TV', airAgain:'📲 Tap again to choose your TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  de:{ airHint:'Browser wird geöffnet: dort den TV mit der AirPlay-Taste wählen', search:'Kanal suchen…', all:'Alle', none:'Keine Kanäle gefunden', share:'↗ Teilen', tv:'📺 Auf den TV', airAgain:'📲 Nochmal tippen, um den TV zu wählen', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  fr:{ airHint:'Ouverture du navigateur : choisissez la TV avec le bouton AirPlay', search:'Rechercher une chaîne…', all:'Toutes', none:'Aucune chaîne trouvée', share:'↗ Partager', tv:'📺 Sur la TV', airAgain:'📲 Touchez encore pour choisir la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
+  es:{ airHint:'Abriendo el navegador: elige la TV con el botón AirPlay', search:'Buscar canal…', all:'Todos', none:'No se encontraron canales', share:'↗ Compartir', tv:'📺 A la TV', airAgain:'📲 Toca otra vez para elegir la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  uk:{ airHint:'Відкриваємо браузер: оберіть телевізор кнопкою AirPlay там', search:'Пошук каналу…', all:'Усі', none:'Канали не знайдено', share:'↗ Поділитися', tv:'📺 На ТБ', airAgain:'📲 Натисніть ще раз, щоб вибрати ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
+  tr:{ airHint:'Tarayıcı açılıyor: oradaki AirPlay düğmesiyle TV’yi seçin', search:'Kanal ara…', all:'Tümü', none:'Kanal bulunamadı', share:'↗ Paylaş', tv:'📺 TV’ye', airAgain:'📲 TV’yi seçmek için tekrar dokunun', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
 };
 function getLang() {
   try { const s=tg?.initDataUnsafe?.user?.language_code?.split('-')[0].toLowerCase(); if(s&&T[s]) return s; } catch(e) {}
@@ -320,7 +321,12 @@ function setStatus(key, isError) {
   statusEl.innerHTML = isError ? '⚠️ '+msg : '<span class="dot"></span>'+msg;
   reloadBtn.style.display = isError ? 'block' : 'none';
 }
-function enforceMute() { if (!userUnmuted) video.muted = true; }
+// v23: звук пользователь включает и выключает в панели видео. Наши собственные изменения звука идут через setMuted,
+// а изменения из панели запоминаются как желание пользователя (переживают переподключение).
+let _progMuteAt = 0;
+function setMuted(m) { _progMuteAt = Date.now(); video.muted = m; }
+video.addEventListener('volumechange', () => { if (Date.now() - _progMuteAt < 500) return; userUnmuted = _soundWanted = !video.muted; });
+function enforceMute() { if (!userUnmuted) setMuted(true); }
 function setAudioMode(on) {
   audioOnly = !!on;
   document.body.classList.toggle('audio-only', audioOnly);
@@ -375,7 +381,7 @@ function onFsChange() {
     overlay.classList.remove('hidden');
     if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout=null; }
     video.style.objectFit = 'contain';
-    if (!userUnmuted) video.muted = true;
+    if (!userUnmuted) setMuted(true);
   }
 }
 document.addEventListener('fullscreenchange', onFsChange);
@@ -392,10 +398,7 @@ video.addEventListener('webkitendfullscreen', async () => {
 let lastTap = 0;
 container.addEventListener('pointerup', e => {
   if (e.target.closest('button')) return;
-  const now = Date.now();
-  if (now-lastTap < 280) { isExpanded ? exitFs() : enterFs(); lastTap=0; return; }
-  lastTap = now;
-  setTimeout(() => { if (Date.now()-lastTap >= 270) showUI(); }, 290);
+  showUI();
 });
 container.addEventListener('pointermove', () => { if (isExpanded) showUI(); });
 container.addEventListener('touchstart', () => { if (isExpanded) showUI(); }, { passive:true });
@@ -421,7 +424,7 @@ if (IN_TG && !isIOS()) {
   };
 }
 video.addEventListener('leavepictureinpicture', async () => {
-  pipBtn.textContent='🎥 PiP'; userUnmuted=false; video.muted=true;
+  pipBtn.textContent='🎥 PiP'; userUnmuted=false; setMuted(true);
   if (video.paused) { try { await video.play(); } catch(e) {} }
 });
 
@@ -449,7 +452,7 @@ video.addEventListener('pause', () => {
   pauseByUser=false;
 });
 video.addEventListener('play', () => {
-  if (!userUnmuted) video.muted=true;
+  if (!userUnmuted) setMuted(true);
   userPaused=false;
   if (isAndroid()) { const a=document.getElementById('audio-bg'); if(a) a.muted=true; }
 });
@@ -459,7 +462,7 @@ document.addEventListener('visibilitychange', async () => {
     setTimeout(async () => {
       if (video.paused) { try { await video.play(); } catch(e) {} }
       const a=document.getElementById('audio-bg');
-      if (isAndroid() && a) { a.muted=false; if(a.paused){try{await a.play();}catch(e){}} video.muted=true; }
+      if (isAndroid() && a) { a.muted=false; if(a.paused){try{await a.play();}catch(e){}} setMuted(true); }
     }, 300);
   } else {
     enforceMute();
@@ -546,31 +549,24 @@ function initQuality(h) {
 // Системный выбор устройства работает только для нативного HLS (не blob/MSE от hls.js). Если канал идёт через hls.js,
 // первое нажатие переключает канал на нативный плеер, второе открывает выбор устройства. Если WebView Telegram
 // не отдаёт AirPlay API — кнопка открывает страницу канала в Safari, где AirPlay есть.
-let _forceNative = false;
+// v23 (как в tv-indonesia): нажатие сразу открывает системный выбор ТВ. На iPhone канал всегда играет в нативном плеере
+// (выбор ТВ работает только с ним, из hls.js на ТВ уходит один звук) и с узла, доступного телевизору (tvUrl, см. v19).
+let _forceNative = isIOS();
 if (isIOS()) {
-  const hasAir = !!window.WebKitPlaybackTargetAvailabilityEvent && typeof video.webkitShowPlaybackTargetPicker === 'function';
-  const isBlob = () => !video.currentSrc || /^blob:/.test(video.currentSrc);
+  try { video.setAttribute('x-webkit-airplay', 'allow'); video.disableRemotePlayback = false; } catch (e) {}
   const airVis = () => { airBtn.style.display = currentCh ? 'block' : 'none'; };
-  if (hasAir) {
-    try { video.setAttribute('x-webkit-airplay', 'allow'); video.disableRemotePlayback = false; } catch (e) {}
-    video.addEventListener('webkitplaybacktargetavailabilitychanged', (e) => { if (e.availability !== 'available' && !isBlob()) airBtn.style.display = 'none'; else airVis(); });
-  }
   ['loadstart', 'playing'].forEach(ev => video.addEventListener(ev, airVis));
   airBtn.onclick = () => {
-    // Заглушённое видео iOS не передаёт на ТВ (подтверждено тестами): включаем звук прямо в жесте нажатия
-    try { video.muted = false; video.volume = 1; userUnmuted = true; _soundWanted = true; unmuteBtn.textContent = '🔇 ' + t.mute; } catch (e) {}
-    if (!hasAir) {
-      const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
-      const w = window.open(url, '_blank');
-      if (!w) { try { tg.openLink(url, { try_instant_view: false }); } catch (e) {} }
+    // Заглушённое видео iOS не передаёт на ТВ: включаем звук прямо в жесте нажатия
+    try { setMuted(false); video.volume = 1; userUnmuted = true; _soundWanted = true; } catch (e) {}
+    if (typeof video.webkitShowPlaybackTargetPicker === 'function') {
+      try { video.webkitShowPlaybackTargetPicker(); } catch (e) {}
       return;
     }
-    if (isBlob()) {
-      if (_forceNative) return;   // нативный плеер ещё запускается: повторный перезапуск не нужен
-      _forceNative = true; airBtn.textContent = t.airAgain; airBtn.classList.add('air-next'); stopStream(); init(); return;
-    }
-    airBtn.textContent = '📲 AirPlay'; airBtn.classList.remove('air-next');
-    try { video.webkitShowPlaybackTargetPicker(); } catch (e) {}
+    // Выбора ТВ нет совсем: страница канала в браузере, где AirPlay есть
+    toast(t.airHint);
+    const url = SITE_URL + (currentCh ? '#' + currentCh.id : '');
+    setTimeout(() => { const w = window.open(url, '_blank'); if (!w) { try { tg.openLink(url, { try_instant_view: false }); } catch (e) {} } }, 900);
   };
 }
 // ── Поток ──────────────────────────────────────────────────────────────────
@@ -585,7 +581,7 @@ function loadStream(url) {
   if (!currentCh) return;
   window.__curUrl = url;
   if (window.__castActive) { setStatus('live'); if (window.__castOnStream) window.__castOnStream(); return; }
-  userUnmuted=false;
+  userUnmuted=_soundWanted;
   const streamUrl = url;
   stopStream(); setStatus('connecting'); unmuteBtn.style.display='none'; qualityBtnHide();
   _lastProgressTime = Date.now(); _lastVideoTime = 0; _lastFrameCount = 0; _lastFrameProgressTime = Date.now();
@@ -599,7 +595,7 @@ function loadStream(url) {
     }
   }
 
-  video.muted = !(_forceNative && _soundWanted);   // для AirPlay звук должен остаться включённым
+  setMuted(!_soundWanted);   // v23: звук сразу; для AirPlay он и должен быть включён
   const _native = _forceNative && isIOS() && !!video.canPlayType('application/vnd.apple.mpegurl');
   if (Hls.isSupported() && !_native) {
     hls = new Hls({ liveSyncDurationCount:3, enableWorker:true, backBufferLength:30,
@@ -609,8 +605,7 @@ function loadStream(url) {
     hls.on(Hls.Events.MANIFEST_PARSED, async () => {
       setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
       try {
-        if (!userUnmuted) video.muted=true;
-        await video.play();
+        await _playWithFallback();
         unmuteBtn.style.display = audioOnly ? 'none' : 'block';
         _restoreSound();
         setupMediaSession();
@@ -625,9 +620,18 @@ function loadStream(url) {
     });
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src=streamUrl; setStatus('live'); liveBadge.style.display='flex'; liveBadgeTop.style.display='inline';
-    video.play()
+    _playWithFallback()
       .then(() => { unmuteBtn.style.display=audioOnly?'none':'block'; _restoreSound(); setupMediaSession(); if(!isIOS())requestWakeLock(); })
       .catch(() => setStatus('pressPlay'));
+  }
+}
+// Браузер не дал играть со звуком без жеста: играем без звука, звук включается в панели видео
+async function _playWithFallback() {
+  try { await video.play(); }
+  catch (e) {
+    if (video.muted) throw e;
+    setMuted(true); userUnmuted = false; _soundWanted = false;
+    await video.play();
   }
 }
 function qualityBtnHide() { const b=document.getElementById('quality-btn'); if (b) { b.style.display='none'; b.onclick=null; } const m=document.getElementById('quality-menu'); if (m) m.remove(); }
@@ -644,13 +648,13 @@ let _soundWanted = false;
 function _restoreSound() {
   if (!_soundWanted || !currentCh) return;
   try {
-    video.muted = false; video.volume = 1; userUnmuted = true;
+    setMuted(false); video.volume = 1; userUnmuted = true;
     unmuteBtn.textContent = '🔇 ' + t.mute;
     const ab = document.getElementById('audio-bg'); if (ab) { ab.muted = true; ab.pause(); }
     setTimeout(() => {
       if (!currentCh || !video.paused) return;
       // браузер не дал включить звук без жеста — возвращаем безопасный режим без звука
-      video.muted = true; userUnmuted = false; unmuteBtn.textContent = '🔊 ' + t.unmute;
+      setMuted(true); userUnmuted = false; unmuteBtn.textContent = '🔊 ' + t.unmute;
       video.play().catch(() => {});
     }, 1500);
   } catch (e) {}
@@ -722,10 +726,10 @@ async function init() {
   try {
     // Прямая ссылка на CDN (источник отдаёт CORS). После 2 неудач подряд — запасной путь через воркер (не для AirPlay: ТВ не дотянется до воркера).
     const _tv = _forceNative && isIOS();
-    const viaProxy = _failStreak >= 2 && !_tv ? '&proxy=1' : '';
+    const viaProxy = _failStreak >= 2 && !(_tv && _onTv()) ? '&proxy=1' : '';
     const r = await fetch(currentCh.stream + '&t=' + Date.now() + viaProxy, { cache:'no-store' });
     const d = await r.json();
-    if (d.url) loadStream(_tv ? tvUrl(d.url) : d.url); else { setStatus('errorUrl', true); _scheduleInit(2000); }
+    if (d.url) loadStream(_tv && !viaProxy ? tvUrl(d.url) : d.url); else { setStatus('errorUrl', true); _scheduleInit(2000); }
   } catch(e) { setStatus('errorServer', true); _scheduleInit(2000); }
 }
 
@@ -734,11 +738,11 @@ reloadBtn.onclick = () => { userPaused=false; _resetRetry(); init(); };
 unmuteBtn.onclick = () => {
   const ab = document.getElementById('audio-bg');
   if (video.muted) {
-    video.muted=false; video.volume=1; userUnmuted=true; _soundWanted=true;
+    setMuted(false); video.volume=1; userUnmuted=true; _soundWanted=true;
     unmuteBtn.textContent = '🔇 '+t.mute;
     if (ab) { ab.muted=true; ab.pause(); }
   } else {
-    video.muted=true; userUnmuted=false; _soundWanted=false;
+    setMuted(true); userUnmuted=false; _soundWanted=false;
     unmuteBtn.textContent = '🔊 '+t.unmute;
     if (ab && isIOS()) { ab.muted=false; ab.volume=0; ab.play().catch(()=>{}); }
   }
@@ -805,8 +809,11 @@ function openChannel(ch) {
   liveBadge.style.background = ch.color.replace(')', ', .9)').replace('rgb', 'rgba');
   audioOnly = false; document.body.classList.remove('audio-only');
   modeBtn.textContent = t.audioMode;
-  _soundWanted=false; _resetRetry(); _playedOnce=false;
-  stopStream(); init();
+  _soundWanted=true; userUnmuted=true; _resetRetry(); _playedOnce=false;
+  stopStream();
+  // Звук разрешаем прямо в жесте нажатия на канал, поток придёт позже
+  setMuted(false); try { const p = video.play(); if (p) p.catch(() => {}); } catch (e) {}
+  init();
 }
 
 function goToHub() {

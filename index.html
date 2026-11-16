@@ -140,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v24 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v25 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -174,6 +174,10 @@ if (tg) {
   try { tg.setBackgroundColor('#000000'); } catch(e) {}
   // v24 (как в tv-indonesia): без полноэкранного режима Telegram при запуске. В нём кнопки Telegram «Назад»/«Закрыть»
   // висят поверх плеера; в обычном режиме «Назад» стоит в шапке Telegram над мини-аппом.
+  // v25: Telegram сам открывает мини-апп в полноэкранном режиме (настройка запуска бота), поэтому выходим из него,
+  // чтобы шапка Telegram с «Закрыть»/«Назад» была над мини-аппом, как в tv-indonesia, а не поверх названия и плеера.
+  const _leaveTgFs = () => { try { if (tg.isFullscreen && tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) tg.exitFullscreen(); } catch (e) {} };
+  _leaveTgFs(); setTimeout(_leaveTgFs, 300);
   try { tg.onEvent('safeAreaChanged', updateSafeArea); } catch(e) {}
   try { tg.onEvent('contentSafeAreaChanged', updateSafeArea); } catch(e) {}
   setTimeout(updateSafeArea, 500);
@@ -361,6 +365,7 @@ function enterFs() {
   isExpanded = true; fullscreenBtn.textContent = t.exitFs;
 }
 function exitFs() {
+  try { if (tg?.isFullscreen && tg.exitFullscreen) tg.exitFullscreen(); } catch(e) {}
   try { if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {}
   container.classList.remove('css-fs'); document.body.style.overflow='';
   isExpanded = false; fullscreenBtn.textContent = t.fullscreen;

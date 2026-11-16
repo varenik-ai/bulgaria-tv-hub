@@ -7,6 +7,7 @@
 - Фоновый звук Android: audio-bg (muted=true, играет для сессии)
 - Фоновый звук iOS: Media Session API
 - v24: полноэкранный режим Telegram при запуске НЕ включаем (как в tv-indonesia: только `tg.expand()`). В нём кнопки Telegram «Назад»/«Закрыть» висят поверх плеера на iPhone
+- v25: Telegram сам открывает мини-апп во весь экран (настройка запуска бота), поэтому при запуске вызываем `tg.exitFullscreen()` (если `isFullscreen` и версия ≥ 8.0); `exitFs()` тоже выходит из полноэкранного режима Telegram
 - Safe area: --tg-safe-top через Telegram.WebApp.safeAreaInsets
 - Звук (v23): кнопки «Звук» нет. Звук включается при нажатии на канал, выключается в системной панели видео (`controls`); изменения из панели запоминаются (`volumechange` → `userUnmuted`/`_soundWanted`), свои изменения код делает только через `setMuted()`
 - PiP: только PC (requestPictureInPicture), скрыт на iOS/Android

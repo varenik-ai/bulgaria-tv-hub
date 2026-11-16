@@ -140,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v23 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v24 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -172,7 +172,8 @@ if (tg) {
   try { tg.disableVerticalSwipes(); } catch(e) {}
   try { tg.setHeaderColor('#000000'); } catch(e) {}
   try { tg.setBackgroundColor('#000000'); } catch(e) {}
-  if (isAndroid() || isIOS()) setTimeout(() => { try { tg.requestFullscreen(); } catch(e) {} }, 300);
+  // v24 (как в tv-indonesia): без полноэкранного режима Telegram при запуске. В нём кнопки Telegram «Назад»/«Закрыть»
+  // висят поверх плеера; в обычном режиме «Назад» стоит в шапке Telegram над мини-аппом.
   try { tg.onEvent('safeAreaChanged', updateSafeArea); } catch(e) {}
   try { tg.onEvent('contentSafeAreaChanged', updateSafeArea); } catch(e) {}
   setTimeout(updateSafeArea, 500);

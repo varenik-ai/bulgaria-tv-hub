@@ -17,37 +17,52 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    html,body { background:#0a0a14; height:100%; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:white; overflow:hidden; touch-action:pan-x pan-y pinch-zoom; }
+    html,body { background:#0a0a14; min-height:100%; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:white; touch-action:pan-x pan-y pinch-zoom; }
+    body { padding-bottom:env(safe-area-inset-bottom,0px); }
+    :root { --plh:0px; --accent:#D62612; --panel:#1a1a28; --muted:#8d8da3; }
+    .app { max-width:720px; margin:0 auto; }
 
-    /* ── Hub ── */
-    #hub-screen { display:flex; flex-direction:column; align-items:center; height:100%; overflow-y:auto; padding:24px 16px 40px; padding-top:calc(24px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); }
-    .hub-logo { font-size:26px; font-weight:900; letter-spacing:2px; margin-bottom:4px; text-transform:uppercase; }
+    /* ── Плеер сверху, прилипает при прокрутке (как в мини-аппе tv-indonesia) ── */
+    #pl { position:sticky; top:0; z-index:20; background:#0a0a14; display:none; padding-top:max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px)); }
+    .bar { display:flex; align-items:center; gap:8px; padding:8px 12px 0; }
+    .bar .t { flex:1; min-width:0; }
+    .bar h1 { font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bar p { color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .x { flex:none; width:34px; height:34px; border:0; border-radius:50%; background:var(--panel); color:#fff; font-size:16px; cursor:pointer; }
+    .live-badge-top { flex:none; color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:6px; display:none; letter-spacing:.5px; }
+    .controls { display:flex; gap:8px; overflow-x:auto; padding:8px 12px 10px; scrollbar-width:none; }
+    .controls::-webkit-scrollbar { display:none; }
+
+    /* ── Список каналов ── */
+    #hub-screen { padding:10px 12px 40px; padding-top:calc(10px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); }
+    body.playing #hub-screen { padding-top:10px; }
+    .hub-logo { font-size:22px; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
     .hub-logo .green { color:#00966E; }
     .hub-logo .white { color:white; }
     .hub-logo .red   { color:#D62612; }
-    .hub-sub { font-size:13px; color:#555; margin-bottom:24px; }
-    .channels-grid { width:100%; max-width:560px; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
-    .category-header { grid-column:1/-1; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:2px; padding:6px 4px 2px; margin-top:6px; }
-    .channel-card { background:#1a1a28; border:1px solid #2a2a3a; border-radius:14px; padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; min-width:0; }
-    .channel-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px 0 0 4px; background:var(--ch-color,#555); }
-    .channel-card:active { opacity:.75; transform:scale(.97); }
-    .ch-icon { width:44px; height:44px; border-radius:9px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; }
-    .ch-info { flex:1; min-width:0; }
-    .ch-name { font-size:13px; font-weight:700; line-height:1.25; white-space:normal; }
-    .ch-desc { display:none; }
-    .ch-icon.ch-logo { background:#0e0e18 !important; padding:6px; box-sizing:border-box; }
+    .hub-sub { font-size:12px; color:#555; margin:2px 0 10px; }
+    .q { width:100%; border:0; border-radius:12px; background:var(--panel); color:#fff; padding:11px 14px; font:inherit; font-size:15px; outline:0; -webkit-appearance:none; appearance:none; }
+    .cw { position:sticky; top:var(--plh); z-index:10; background:#0a0a14; margin:0 -12px; padding:0 12px 6px; }
+    .chips { display:flex; gap:8px; overflow-x:auto; padding:10px 0 4px; scrollbar-width:none; }
+    .chips::-webkit-scrollbar { display:none; }
+    .chip { flex:none; border:0; border-radius:18px; padding:7px 13px; background:var(--panel); color:#fff; font:inherit; font-size:14px; cursor:pointer; }
+    .chip.on { background:var(--accent); }
+    .list { padding:4px 0 16px; }
+    .row { display:flex; align-items:center; gap:12px; padding:9px 8px; border-radius:12px; cursor:pointer; }
+    .row:active { background:var(--panel); }
+    .row.on { background:linear-gradient(135deg,rgba(214,38,18,.25),rgba(214,38,18,.08)); box-shadow:inset 0 0 0 1px rgba(214,38,18,.5); }
+    .ch-icon { width:44px; height:44px; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; }
+    .ch-icon.ch-logo { background:#0e0e18 !important; padding:5px; }
     .ch-icon img { width:100%; height:100%; object-fit:contain; display:block; }
-    .live-dot { width:8px; height:8px; background:var(--ch-color,#555); border-radius:50%; animation:pulse 1.2s infinite; flex-shrink:0; }
-
-    /* ── Player ── */
-    #player-screen { display:none; flex-direction:column; align-items:center; height:100%; }
-    .player-header { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 14px; padding-top:calc(10px + max(var(--tg-safe-top,0px), env(safe-area-inset-top,0px))); background:#0d0d1a; border-bottom:1px solid #1e1e2e; flex-shrink:0; }
-    .ch-title-bar { font-size:15px; font-weight:700; }
-    .btn.channels-btn { background:linear-gradient(135deg,#1565c0,#0d47a1); font-weight:700; order:-1; }
-    .live-badge-top { color:#fff; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-left:6px; display:none; }
+    .rn { flex:1; min-width:0; }
+    .rn b { display:block; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rn small { color:var(--muted); font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .live { flex:none; font-size:10px; font-weight:800; color:#fff; background:var(--accent); border-radius:6px; padding:2px 6px; letter-spacing:.5px; }
+    .none { padding:30px; text-align:center; color:var(--muted); }
+    .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:10001; max-width:88%; background:rgba(20,20,35,.95); color:#fff; border-radius:12px; padding:10px 14px; font-size:13px; text-align:center; }
 
     /* ── Video ── */
-    #video-container { width:100%; flex:1; background:#000; position:relative; overflow:visible; touch-action:pinch-zoom; }
+    #video-container { width:100%; aspect-ratio:16/9; max-height:52vh; background:#000; position:relative; overflow:hidden; touch-action:pinch-zoom; }
     #video-container.css-fs { position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; z-index:9999 !important; }
     #video-container.css-fs .live-badge,
     #video-container:fullscreen .live-badge,
@@ -66,16 +81,15 @@
 
     .overlay { position:absolute; inset:0; z-index:20; pointer-events:none; transition:opacity .5s ease; }
     .overlay.hidden { opacity:0; pointer-events:none; }
-    .controls { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,.92)); padding:28px 14px; pointer-events:all; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
-    .btn { padding:12px 18px; color:white; border:none; border-radius:10px; font-size:14px; cursor:pointer; transition:all .2s; flex:1; max-width:160px; background:rgba(255,255,255,.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.1); }
+    .btn { flex:none; border:0; border-radius:12px; padding:9px 13px; background:var(--panel); color:#fff; font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; }
     .btn:active { transform:scale(.96); }
     .btn.danger { background:#00966E; }
-    .btn.air-next { flex:1 0 100%; max-width:none; background:#D62612; font-weight:600; }
+    .btn.air-next { background:#D62612; }
     .btn.reload { background:#333; }
 
-    #status { font-size:13px; color:#888; text-align:center; padding:8px 0 0; flex-shrink:0; }
+    #status { font-size:12px; color:#888; padding:6px 12px 0; }
     .dot { display:inline-block; width:8px; height:8px; background:#00966E; border-radius:50%; margin-right:6px; animation:pulse 1.2s infinite; vertical-align:middle; }
-    .thank-btn { margin:22px 0 4px; padding:12px 22px; border-radius:999px; border:1px solid #3a3a2a; background:#1f1d12; color:#ffd54a; font-size:14px; font-weight:700; cursor:pointer; }
+    .thank-btn { display:block; margin:22px auto 4px; padding:12px 22px; border-radius:999px; border:1px solid #3a3a2a; background:#1f1d12; color:#ffd54a; font-size:14px; font-weight:700; cursor:pointer; }
     .thank-btn:active { transform:scale(.96); }
     #donate-modal { position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.7); display:none; align-items:flex-end; justify-content:center; }
     #donate-modal .sheet { width:100%; max-width:560px; background:#14141f; border-radius:18px 18px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px)); text-align:center; }
@@ -88,12 +102,45 @@
 </head>
 <body>
 
+<div class="app">
+<div id="pl">
+  <div id="video-container">
+    <div class="live-badge" id="live-badge"><span class="dot"></span> НА ЖИВО</div>
+    <div id="audio-badge"><div class="pill">🎧 Аудио режим</div></div>
+    <video id="video" autoplay playsinline webkit-playsinline airplay="allow" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;"></video>
+    <div class="overlay" id="overlay"></div>
+    <audio id="audio-bg" muted></audio>
+  </div>
+  <div class="bar">
+    <div class="t"><h1 id="ch-title"></h1><p id="ch-desc"></p></div>
+    <span class="live-badge-top" id="live-badge-top">LIVE</span>
+    <button class="x" id="back-btn" type="button">✕</button>
+  </div>
+  <div id="status"></div>
+  <div class="controls" id="acts">
+    <button id="reload-btn" class="btn reload" style="display:none"></button>
+    <button id="unmute-btn" class="btn danger" style="display:none"></button>
+    <button id="airplay-btn" class="btn" style="display:none">📲 AirPlay</button>
+    <button id="cast-btn" class="btn" style="display:none">📡 Cast</button>
+    <button id="tv-btn" class="btn" style="display:none"></button>
+    <button id="mode-btn" class="btn"></button>
+    <button id="fullscreen-btn" class="btn"></button>
+    <button id="quality-btn" class="btn" style="display:none"></button>
+    <button id="pip-btn" class="btn" style="display:none"></button>
+    <button id="share-btn" class="btn"></button>
+    <button id="thank-btn-player" class="btn"></button>
+  </div>
+</div>
+
 <div id="hub-screen">
   <div class="hub-logo"><span class="white">БЪЛ</span><span class="green">ГА</span><span class="red">РИЯ·ТВ</span></div>
   <div class="hub-sub">На живо — Безплатно — 24/7</div>
-  <div class="channels-grid" id="channels-grid"></div>
+  <input class="q" id="q" type="search" autocomplete="off">
+  <div class="cw"><div class="chips" id="chips"></div></div>
+  <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333">v21 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v22 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+</div>
 </div>
 
 <div id="donate-modal"><div class="sheet">
@@ -101,35 +148,6 @@
   <div class="amounts" id="donate-amounts"></div>
   <button class="close" id="donate-close">✕</button>
 </div></div>
-
-<div id="player-screen">
-  <div class="player-header">
-    <span class="ch-title-bar" id="ch-title"></span>
-    <span class="live-badge-top" id="live-badge-top">LIVE</span>
-  </div>
-  <div id="video-container">
-    <div class="live-badge" id="live-badge"><span class="dot"></span> НА ЖИВО</div>
-    <div id="audio-badge"><div class="pill">🎧 Аудио режим</div></div>
-    <video id="video" autoplay playsinline webkit-playsinline airplay="allow" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;"></video>
-    <div class="overlay" id="overlay">
-      <div class="controls">
-        <button id="back-btn" class="btn channels-btn"></button>
-        <button id="reload-btn" class="btn reload" style="display:none"></button>
-        <button id="unmute-btn" class="btn danger" style="display:none"></button>
-        <button id="mode-btn" class="btn"></button>
-        <button id="fullscreen-btn" class="btn"></button>
-        <button id="quality-btn" class="btn" style="display:none"></button>
-        <button id="pip-btn" class="btn" style="display:none"></button>
-        <button id="airplay-btn" class="btn" style="display:none">📲 AirPlay</button>
-        <button id="cast-btn" class="btn" style="display:none">📡 Cast</button>
-        <button id="tv-btn" class="btn" style="display:none"></button>
-        <button id="thank-btn-player" class="btn"></button>
-      </div>
-    </div>
-    <audio id="audio-bg" muted></audio>
-  </div>
-  <div id="status">...</div>
-</div>
 
 <script>
 const tg = window.Telegram?.WebApp;
@@ -157,6 +175,7 @@ if (tg) {
   try { tg.onEvent('safeAreaChanged', updateSafeArea); } catch(e) {}
   try { tg.onEvent('contentSafeAreaChanged', updateSafeArea); } catch(e) {}
   setTimeout(updateSafeArea, 500);
+  setTimeout(() => { try { plh(); } catch (e) {} }, 600);
 }
 
 // ── Определение платформы ──────────────────────────────────────────────────
@@ -243,14 +262,14 @@ const CHANNEL_GROUPS = [
 
 // ── Преводи ────────────────────────────────────────────────────────────────
 const T = {
-  bg:{ tv:'📺 На ТВ', airAgain:'📲 Натиснете отново, за да изберете ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  ru:{ tv:'📺 На ТВ', airAgain:'📲 Нажмите ещё раз, чтобы выбрать ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  en:{ tv:'📺 To TV', airAgain:'📲 Tap again to choose your TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  de:{ tv:'📺 Auf den TV', airAgain:'📲 Nochmal tippen, um den TV zu wählen', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  fr:{ tv:'📺 Sur la TV', airAgain:'📲 Touchez encore pour choisir la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
-  es:{ tv:'📺 A la TV', airAgain:'📲 Toca otra vez para elegir la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  uk:{ tv:'📺 На ТБ', airAgain:'📲 Натисніть ще раз, щоб вибрати ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
-  tr:{ tv:'📺 TV’ye', airAgain:'📲 TV’yi seçmek için tekrar dokunun', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
+  bg:{ search:'Търси канал…', all:'Всички', none:'Няма намерени канали', share:'↗ Сподели', tv:'📺 На ТВ', airAgain:'📲 Натиснете отново, за да изберете ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  ru:{ search:'Поиск канала…', all:'Все', none:'Каналы не найдены', share:'↗ Поделиться', tv:'📺 На ТВ', airAgain:'📲 Нажмите ещё раз, чтобы выбрать ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  en:{ search:'Search channels…', all:'All', none:'No channels found', share:'↗ Share', tv:'📺 To TV', airAgain:'📲 Tap again to choose your TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  de:{ search:'Kanal suchen…', all:'Alle', none:'Keine Kanäle gefunden', share:'↗ Teilen', tv:'📺 Auf den TV', airAgain:'📲 Nochmal tippen, um den TV zu wählen', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  fr:{ search:'Rechercher une chaîne…', all:'Toutes', none:'Aucune chaîne trouvée', share:'↗ Partager', tv:'📺 Sur la TV', airAgain:'📲 Touchez encore pour choisir la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
+  es:{ search:'Buscar canal…', all:'Todos', none:'No se encontraron canales', share:'↗ Compartir', tv:'📺 A la TV', airAgain:'📲 Toca otra vez para elegir la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  uk:{ search:'Пошук каналу…', all:'Усі', none:'Канали не знайдено', share:'↗ Поділитися', tv:'📺 На ТБ', airAgain:'📲 Натисніть ще раз, щоб вибрати ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
+  tr:{ search:'Kanal ara…', all:'Tümü', none:'Kanal bulunamadı', share:'↗ Paylaş', tv:'📺 TV’ye', airAgain:'📲 TV’yi seçmek için tekrar dokunun', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
 };
 function getLang() {
   try { const s=tg?.initDataUnsafe?.user?.language_code?.split('-')[0].toLowerCase(); if(s&&T[s]) return s; } catch(e) {}
@@ -266,9 +285,10 @@ function gaEvent(name, params) {
 gaEvent('miniapp_open', { user_language: getLang() });
 
 // ── DOM ────────────────────────────────────────────────────────────────────
-const hubScreen    = document.getElementById('hub-screen');
-const playerScreen = document.getElementById('player-screen');
-const channelsGrid = document.getElementById('channels-grid');
+const plEl         = document.getElementById('pl');
+const listEl       = document.getElementById('list');
+const chipsEl      = document.getElementById('chips');
+const searchEl     = document.getElementById('q');
 const backBtn      = document.getElementById('back-btn');
 const chTitle      = document.getElementById('ch-title');
 const liveBadgeTop = document.getElementById('live-badge-top');
@@ -291,7 +311,7 @@ let userPaused=false, audioOnly=false, userUnmuted=false, isExpanded=false, wake
 reloadBtn.textContent     = t.reconnect;
 unmuteBtn.textContent     = t.unmute;
 modeBtn.textContent       = t.audioMode;
-backBtn.textContent       = t.channels;
+backBtn.setAttribute('aria-label', t.channels);
 fullscreenBtn.textContent = t.fullscreen;
 
 // ── Утилиты ────────────────────────────────────────────────────────────────
@@ -505,7 +525,7 @@ function initQuality(h) {
       e.stopPropagation();
       if (document.getElementById('quality-menu')) { closeMenu(); return; }
       const m = document.createElement('div'); m.id = 'quality-menu';
-      m.style.cssText = 'position:absolute;right:10px;bottom:76px;z-index:60;background:#12121f;border:1px solid #2a2a40;border-radius:10px;padding:6px;min-width:170px;box-shadow:0 8px 28px rgba(0,0,0,.55);color:#e2e2f0;font:13px/1.3 -apple-system,BlinkMacSystemFont,sans-serif';
+      m.style.cssText = 'position:absolute;right:10px;top:8px;max-height:calc(100% - 16px);overflow-y:auto;z-index:60;background:#12121f;border:1px solid #2a2a40;border-radius:10px;padding:6px;min-width:170px;box-shadow:0 8px 28px rgba(0,0,0,.55);color:#e2e2f0;font:13px/1.3 -apple-system,BlinkMacSystemFont,sans-serif';
       const add = (text, value) => {
         const b = document.createElement('button'); b.type = 'button'; b.textContent = text;
         b.style.cssText = 'display:block;width:100%;text-align:left;background:' + (get() === value ? '#1a3a7a' : 'none') + ';border:0;color:inherit;padding:9px 10px;border-radius:7px;cursor:pointer;font:inherit';
@@ -725,36 +745,62 @@ unmuteBtn.onclick = () => {
 };
 modeBtn.onclick = () => setAudioMode(!audioOnly);
 
-// ── Хаб ───────────────────────────────────────────────────────────────────
-function buildHub() {
-  channelsGrid.innerHTML = '';
-  CHANNEL_GROUPS.forEach(group => {
-    const header = document.createElement('div');
-    header.className = 'category-header';
-    header.textContent = group.label;
-    channelsGrid.appendChild(header);
-    group.channels.forEach(ch => {
-      const card = document.createElement('div');
-      card.className = 'channel-card';
-      card.style.setProperty('--ch-color', ch.color);
-      card.innerHTML = `
-        <div class="ch-icon${ch.logo ? ' ch-logo' : ''}" style="background:${ch.iconBg};color:${ch.color}">${ch.logo ? `<img src="${ch.logo}" alt="${ch.icon}" loading="lazy">` : ch.icon}</div>
-        <div class="ch-info"><div class="ch-name">${ch.name}</div><div class="ch-desc">${ch.desc || 'На живо'}</div></div>
-        <div class="live-dot"></div>`;
-      const im = card.querySelector('.ch-logo img');
-      if (im) im.onerror = () => { const b = im.parentElement; b.classList.remove('ch-logo'); b.textContent = ch.icon; };
-      card.onclick = () => openChannel(ch);
-      channelsGrid.appendChild(card);
-    });
-  });
+// ── Список каналов: поиск, категории, строки (как в мини-аппе tv-indonesia) ──
+let _cat = -1;
+function rowEl(ch) {
+  const r = document.createElement('div');
+  r.className = 'row' + (currentCh && currentCh.id === ch.id ? ' on' : '');
+  r.dataset.id = ch.id;
+  r.innerHTML = `<div class="ch-icon${ch.logo ? ' ch-logo' : ''}" style="background:${ch.iconBg};color:${ch.color}">${ch.logo ? `<img src="${ch.logo}" alt="${ch.icon}" loading="lazy">` : ch.icon}</div>
+    <div class="rn"><b></b><small></small></div><span class="live">LIVE</span>`;
+  r.querySelector('b').textContent = ch.name;
+  r.querySelector('small').textContent = ch.desc || '';
+  const im = r.querySelector('.ch-logo img');
+  if (im) im.onerror = () => { const b = im.parentElement; b.classList.remove('ch-logo'); b.textContent = ch.icon; };
+  r.onclick = () => openChannel(ch);
+  return r;
 }
+function renderList() {
+  const q = searchEl.value.trim().toLowerCase();
+  const items = [];
+  CHANNEL_GROUPS.forEach((g, gi) => { if (_cat < 0 || _cat === gi) g.channels.forEach(ch => { if (!q || ch.name.toLowerCase().includes(q)) items.push(ch); }); });
+  listEl.innerHTML = '';
+  if (!items.length) { const d = document.createElement('div'); d.className = 'none'; d.textContent = t.none; listEl.appendChild(d); return; }
+  items.forEach(ch => listEl.appendChild(rowEl(ch)));
+}
+function buildHub() {
+  searchEl.placeholder = t.search;
+  chipsEl.innerHTML = '';
+  const chip = (label, gi) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (gi === _cat ? ' on' : ''); b.textContent = label;
+    b.onclick = () => { _cat = gi; [...chipsEl.children].forEach(x => x.classList.toggle('on', x === b)); renderList(); };
+    chipsEl.appendChild(b);
+  };
+  chip(t.all, -1);
+  CHANNEL_GROUPS.forEach((g, gi) => chip(g.label, gi));
+  searchEl.addEventListener('input', renderList);
+  renderList();
+}
+function markRows() { [...listEl.querySelectorAll('.row')].forEach(r => r.classList.toggle('on', !!currentCh && r.dataset.id === currentCh.id)); }
+// Высота плеера: категории прилипают под ним
+function plh() {
+  const safe = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tg-safe-top')) || 0;
+  document.documentElement.style.setProperty('--plh', (plEl.style.display === 'block' ? plEl.offsetHeight : safe) + 'px');
+}
+window.addEventListener('resize', plh);
+// Высота плеера меняется, когда появляются статус и кнопки: следим за ней
+try { new ResizeObserver(plh).observe(plEl); } catch (e) {}
+function toast(text) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = text; document.body.appendChild(d); setTimeout(() => d.remove(), 4500); }
 
 function openChannel(ch) {
   gaEvent('channel_open', { channel_id: ch.id, channel_name: ch.name });
   currentCh = ch;
-  hubScreen.style.display = 'none';
-  playerScreen.style.display = 'flex';
+  plEl.style.display = 'block'; document.body.classList.add('playing');
   chTitle.textContent = ch.name;
+  document.getElementById('ch-desc').textContent = ch.desc || '';
+  markRows(); plh();
+  if (tg?.BackButton) { try { tg.BackButton.show(); } catch (e) {} }
+  try { history.replaceState(null, '', location.pathname + location.search + '#' + ch.id); } catch (e) {}
   liveBadgeTop.style.background = ch.color;
   liveBadge.style.background = ch.color.replace(')', ', .9)').replace('rgb', 'rgba');
   audioOnly = false; document.body.classList.remove('audio-only');
@@ -765,13 +811,29 @@ function openChannel(ch) {
 
 function goToHub() {
   stopStream();
-  playerScreen.style.display = 'none';
-  hubScreen.style.display = 'flex';
+  if (isExpanded) exitFs();
+  plEl.style.display = 'none'; document.body.classList.remove('playing');
   currentCh = null;
+  markRows(); plh();
+  if (tg?.BackButton) { try { tg.BackButton.hide(); } catch (e) {} }
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
 }
 
-// Кнопка назад — в хаб (много каналов, не закрываем приложение)
+// ✕ и системная кнопка Telegram «Назад» закрывают плеер, список остаётся (как в tv-indonesia)
 backBtn.onclick = () => goToHub();
+if (tg?.BackButton) { try { tg.BackButton.onClick(goToHub); } catch (e) {} }
+
+// «Поделиться»: ссылка на канал на сайте через окно пересылки Telegram (как в tv-indonesia)
+const shareBtn = document.getElementById('share-btn');
+shareBtn.textContent = t.share;
+shareBtn.onclick = () => {
+  if (!currentCh) return;
+  const link = SITE_URL + '#' + currentCh.id;
+  const u = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(currentCh.name + ' — live');
+  // Вне Telegram openTelegramLink уводит со страницы: там открываем в новой вкладке
+  if (IN_TG && tg?.openTelegramLink) { try { tg.openTelegramLink(u); return; } catch (e) {} }
+  window.open(u, '_blank');
+};
 
 // ── Благодарность через Telegram Stars (⭐) ──────────────────────────────
 const BOT_API = 'https://bulgaria-bot-worker.dyaltd.workers.dev';

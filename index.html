@@ -140,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v27 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v28 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -248,20 +248,60 @@ const CHANNEL_GROUPS = [
 
 // ── Преводи ────────────────────────────────────────────────────────────────
 const T = {
-  bg:{ airHint:'Отваряме браузъра: изберете телевизора с бутона AirPlay там', search:'Търси канал…', all:'Всички', none:'Няма намерени канали', share:'↗ Сподели', tv:'📺 На ТВ', airAgain:'📲 Натиснете отново, за да изберете ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  ru:{ airHint:'Открываем браузер: выберите телевизор кнопкой AirPlay там', search:'Поиск канала…', all:'Все', none:'Каналы не найдены', share:'↗ Поделиться', tv:'📺 На ТВ', airAgain:'📲 Нажмите ещё раз, чтобы выбрать ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
-  en:{ airHint:'Opening your browser: choose your TV with the AirPlay button there', search:'Search channels…', all:'All', none:'No channels found', share:'↗ Share', tv:'📺 To TV', airAgain:'📲 Tap again to choose your TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  de:{ airHint:'Browser wird geöffnet: dort den TV mit der AirPlay-Taste wählen', search:'Kanal suchen…', all:'Alle', none:'Keine Kanäle gefunden', share:'↗ Teilen', tv:'📺 Auf den TV', airAgain:'📲 Nochmal tippen, um den TV zu wählen', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  fr:{ airHint:'Ouverture du navigateur : choisissez la TV avec le bouton AirPlay', search:'Rechercher une chaîne…', all:'Toutes', none:'Aucune chaîne trouvée', share:'↗ Partager', tv:'📺 Sur la TV', airAgain:'📲 Touchez encore pour choisir la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
-  es:{ airHint:'Abriendo el navegador: elige la TV con el botón AirPlay', search:'Buscar canal…', all:'Todos', none:'No se encontraron canales', share:'↗ Compartir', tv:'📺 A la TV', airAgain:'📲 Toca otra vez para elegir la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
-  uk:{ airHint:'Відкриваємо браузер: оберіть телевізор кнопкою AirPlay там', search:'Пошук каналу…', all:'Усі', none:'Канали не знайдено', share:'↗ Поділитися', tv:'📺 На ТБ', airAgain:'📲 Натисніть ще раз, щоб вибрати ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
-  tr:{ airHint:'Tarayıcı açılıyor: oradaki AirPlay düğmesiyle TV’yi seçin', search:'Kanal ara…', all:'Tümü', none:'Kanal bulunamadı', share:'↗ Paylaş', tv:'📺 TV’ye', airAgain:'📲 TV’yi seçmek için tekrar dokunun', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
+  bg:{ tagline:'На живо — Безплатно — 24/7', audioPill:'🎧 Аудио режим', qAuto:'Авто', mbps:'Мбит/с', airHint:'Отваряме браузъра: изберете телевизора с бутона AirPlay там', search:'Търси канал…', all:'Всички', none:'Няма намерени канали', share:'↗ Сподели', tv:'📺 На ТВ', airAgain:'📲 Натиснете отново, за да изберете ТВ', channels:'Канали', unavailable:'Каналът временно не е достъпен', thank:'⭐ Благодаря', loading:'Зареждаме...', connecting:'Свързване...', live:'НА ЖИВО', pressPlay:'Натиснете ▶', errorStream:'Грешка — свързваме...', errorUrl:'Неуспешно', errorServer:'Грешка', reconnect:'🔄 Свържи', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕ Изход', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  ru:{ tagline:'В эфире — Бесплатно — 24/7', audioPill:'🎧 Аудиорежим', qAuto:'Авто', mbps:'Мбит/с', airHint:'Открываем браузер: выберите телевизор кнопкой AirPlay там', search:'Поиск канала…', all:'Все', none:'Каналы не найдены', share:'↗ Поделиться', tv:'📺 На ТВ', airAgain:'📲 Нажмите ещё раз, чтобы выбрать ТВ', channels:'Каналы', unavailable:'Канал временно недоступен', thank:'⭐ Поблагодарить', loading:'Получаем поток...', connecting:'Подключение...', live:'НА ЖИВО', pressPlay:'Нажмите ▶', errorStream:'Ошибка — переподключаемся...', errorUrl:'Не удалось получить URL', errorServer:'Ошибка сервера', reconnect:'🔄 Переподключиться', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Экран', exitFs:'✕ Выйти', audioMode:'🎧 Аудио', videoMode:'🎥 Видео' },
+  en:{ tagline:'Live — Free — 24/7', audioPill:'🎧 Audio mode', qAuto:'Auto', mbps:'Mbit/s', airHint:'Opening your browser: choose your TV with the AirPlay button there', search:'Search channels…', all:'All', none:'No channels found', share:'↗ Share', tv:'📺 To TV', airAgain:'📲 Tap again to choose your TV', channels:'Channels', unavailable:'Channel temporarily unavailable', thank:'⭐ Say thanks', loading:'Loading...', connecting:'Connecting...', live:'LIVE', pressPlay:'Press ▶', errorStream:'Error — reconnecting...', errorUrl:'Failed to get URL', errorServer:'Server error', reconnect:'🔄 Reconnect', unmute:'🔊 Unmute', mute:'🔇 Mute', fullscreen:'🔳 Fullscreen', exitFs:'✕ Exit', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  de:{ tagline:'Live — Kostenlos — 24/7', audioPill:'🎧 Audiomodus', qAuto:'Auto', mbps:'Mbit/s', airHint:'Browser wird geöffnet: dort den TV mit der AirPlay-Taste wählen', search:'Kanal suchen…', all:'Alle', none:'Keine Kanäle gefunden', share:'↗ Teilen', tv:'📺 Auf den TV', airAgain:'📲 Nochmal tippen, um den TV zu wählen', channels:'Kanäle', unavailable:'Kanal vorübergehend nicht verfügbar', thank:'⭐ Danke sagen', loading:'Laden...', connecting:'Verbinden...', live:'LIVE', pressPlay:'▶ drücken', errorStream:'Fehler...', errorUrl:'Fehler', errorServer:'Serverfehler', reconnect:'🔄 Neu', unmute:'🔊 Ton', mute:'🔇 Still', fullscreen:'🔳 Vollbild', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  fr:{ tagline:'En direct — Gratuit — 24/7', audioPill:'🎧 Mode audio', qAuto:'Auto', mbps:'Mbit/s', airHint:'Ouverture du navigateur : choisissez la TV avec le bouton AirPlay', search:'Rechercher une chaîne…', all:'Toutes', none:'Aucune chaîne trouvée', share:'↗ Partager', tv:'📺 Sur la TV', airAgain:'📲 Touchez encore pour choisir la TV', channels:'Chaînes', unavailable:'Chaîne temporairement indisponible', thank:'⭐ Remercier', loading:'Chargement...', connecting:'Connexion...', live:'EN DIRECT', pressPlay:'▶', errorStream:'Erreur...', errorUrl:'Erreur URL', errorServer:'Erreur', reconnect:'🔄 Reconnecter', unmute:'🔊 Son', mute:'🔇 Muet', fullscreen:'🔳 Plein', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Vidéo' },
+  es:{ tagline:'En vivo — Gratis — 24/7', audioPill:'🎧 Modo audio', qAuto:'Auto', mbps:'Mbit/s', airHint:'Abriendo el navegador: elige la TV con el botón AirPlay', search:'Buscar canal…', all:'Todos', none:'No se encontraron canales', share:'↗ Compartir', tv:'📺 A la TV', airAgain:'📲 Toca otra vez para elegir la TV', channels:'Canales', unavailable:'Canal no disponible temporalmente', thank:'⭐ Agradecer', loading:'Cargando...', connecting:'Conectando...', live:'EN VIVO', pressPlay:'▶', errorStream:'Error...', errorUrl:'Error', errorServer:'Error', reconnect:'🔄 Reconectar', unmute:'🔊 Sonido', mute:'🔇 Silencio', fullscreen:'🔳 Pantalla', exitFs:'✕', audioMode:'🎧 Audio', videoMode:'🎥 Video' },
+  uk:{ tagline:'Наживо — Безкоштовно — 24/7', audioPill:'🎧 Аудіорежим', qAuto:'Авто', mbps:'Мбіт/с', airHint:'Відкриваємо браузер: оберіть телевізор кнопкою AirPlay там', search:'Пошук каналу…', all:'Усі', none:'Канали не знайдено', share:'↗ Поділитися', tv:'📺 На ТБ', airAgain:'📲 Натисніть ще раз, щоб вибрати ТБ', channels:'Канали', unavailable:'Канал тимчасово недоступний', thank:'⭐ Подякувати', loading:'Отримуємо...', connecting:'Підключення...', live:'НА ЖИВО', pressPlay:'Натисніть ▶', errorStream:'Помилка...', errorUrl:'Помилка URL', errorServer:'Помилка', reconnect:'🔄 Повторити', unmute:'🔊 Звук', mute:'🔇 Тихо', fullscreen:'🔳 Екран', exitFs:'✕', audioMode:'🎧 Аудіо', videoMode:'🎥 Відео' },
+  tr:{ tagline:'Canlı — Ücretsiz — 7/24', audioPill:'🎧 Ses modu', qAuto:'Otomatik', mbps:'Mbit/sn', airHint:'Tarayıcı açılıyor: oradaki AirPlay düğmesiyle TV’yi seçin', search:'Kanal ara…', all:'Tümü', none:'Kanal bulunamadı', share:'↗ Paylaş', tv:'📺 TV’ye', airAgain:'📲 TV’yi seçmek için tekrar dokunun', channels:'Kanallar', unavailable:'Kanal geçici olarak kullanılamıyor', thank:'⭐ Teşekkür et', loading:'Yükleniyor...', connecting:'Bağlanıyor...', live:'CANLI', pressPlay:'▶', errorStream:'Hata...', errorUrl:'Hata', errorServer:'Hata', reconnect:'🔄 Bağlan', unmute:'🔊 Ses', mute:'🔇 Sessiz', fullscreen:'🔳 Tam ekran', exitFs:'✕', audioMode:'🎧 Ses', videoMode:'🎥 Video' },
 };
 function getLang() {
   try { const s=tg?.initDataUnsafe?.user?.language_code?.split('-')[0].toLowerCase(); if(s&&T[s]) return s; } catch(e) {}
   const b=(navigator.language||'en').split('-')[0].toLowerCase(); return T[b]?b:'en';
 }
 const t = T[getLang()];
+// v28: категории и описания каналов на языке интерфейса (как в tv-indonesia). Болгарский — из CHANNEL_GROUPS.
+const _LANG = getLang(), _LI = ["ru", "en", "de", "fr", "es", "uk", "tr"].indexOf(_LANG);
+const CAT_I18N = {"ru": ["Новости и общие", "Спорт", "Фильмы и сериалы", "Развлечения и документальные", "Детские", "Музыка и фольклор"], "en": ["News & general", "Sports", "Movies & series", "Entertainment & documentary", "Kids", "Music & folklore"], "de": ["Nachrichten & Allgemein", "Sport", "Filme & Serien", "Unterhaltung & Doku", "Kinder", "Musik & Folklore"], "fr": ["Infos & généralistes", "Sport", "Films & séries", "Divertissement & documentaires", "Enfants", "Musique & folklore"], "es": ["Noticias y generalistas", "Deportes", "Películas y series", "Entretenimiento y documentales", "Infantil", "Música y folclore"], "uk": ["Новини та загальні", "Спорт", "Фільми та серіали", "Розваги та документальні", "Дитячі", "Музика та фольклор"], "tr": ["Haber ve genel", "Spor", "Film ve dizi", "Eğlence ve belgesel", "Çocuk", "Müzik ve folklor"]};
+const DESC_I18N = {"Водещата национална телевизия":["Ведущий национальный телеканал","Leading national TV channel","Führender nationaler Sender","Première chaîne nationale","Canal nacional líder","Провідний національний телеканал","Önde gelen ulusal kanal"],
+  "Новини, сериали и шоу":["Новости, сериалы и шоу","News, series and shows","Nachrichten, Serien und Shows","Infos, séries et émissions","Noticias, series y programas","Новини, серіали та шоу","Haber, dizi ve şov"],
+  "Българска национална телевизия":["Болгарское национальное телевидение","Bulgarian National Television","Bulgarisches Nationalfernsehen","Télévision nationale bulgare","Televisión Nacional de Bulgaria","Болгарське національне телебачення","Bulgaristan Ulusal Televizyonu"],
+  "Предавания и сериали":["Передачи и сериалы","Programmes and series","Sendungen und Serien","Émissions et séries","Programas y series","Передачі та серіали","Programlar ve diziler"],
+  "Култура и забавление":["Культура и развлечения","Culture and entertainment","Kultur und Unterhaltung","Culture et divertissement","Cultura y entretenimiento","Культура та розваги","Kültür ve eğlence"],
+  "Регионални новини":["Региональные новости","Regional news","Regionalnachrichten","Infos régionales","Noticias regionales","Регіональні новини","Bölgesel haberler"],
+  "Новини и анализи 24/7":["Новости и аналитика 24/7","News and analysis 24/7","Nachrichten und Analysen 24/7","Infos et analyses 24h/24","Noticias y análisis 24/7","Новини та аналітика 24/7","Haber ve analiz 7/24"],
+  "Новини 24/7":["Новости 24/7","News 24/7","Nachrichten 24/7","Infos 24h/24","Noticias 24/7","Новини 24/7","Haber 7/24"],
+  "Новини от Европа и света":["Новости Европы и мира","News from Europe and the world","Nachrichten aus Europa und der Welt","Infos d’Europe et du monde","Noticias de Europa y del mundo","Новини Європи та світу","Avrupa ve dünyadan haberler"],
+  "Футбол и спорт на живо":["Футбол и спорт в прямом эфире","Live football and sports","Fußball und Sport live","Football et sport en direct","Fútbol y deportes en directo","Футбол і спорт наживо","Canlı futbol ve spor"],
+  "Спорт на живо":["Спорт в прямом эфире","Live sports","Sport live","Sport en direct","Deportes en directo","Спорт наживо","Canlı spor"],
+  "Спортни събития":["Спортивные события","Sports events","Sportereignisse","Événements sportifs","Eventos deportivos","Спортивні події","Spor etkinlikleri"],
+  "Футбол и спорт":["Футбол и спорт","Football and sports","Fußball und Sport","Football et sport","Fútbol y deportes","Футбол і спорт","Futbol ve spor"],
+  "Спорт от цял свят":["Спорт со всего мира","Sports from around the world","Sport aus aller Welt","Sport du monde entier","Deportes de todo el mundo","Спорт з усього світу","Dünyanın dört bir yanından spor"],
+  "Още спорт на живо":["Ещё больше спорта в эфире","More live sports","Mehr Sport live","Plus de sport en direct","Más deportes en directo","Ще більше спорту наживо","Daha fazla canlı spor"],
+  "Филми 24/7":["Фильмы 24/7","Movies 24/7","Filme 24/7","Films 24h/24","Películas 24/7","Фільми 24/7","Film 7/24"],
+  "Сериали и филми":["Сериалы и фильмы","Series and movies","Serien und Filme","Séries et films","Series y películas","Серіали та фільми","Dizi ve film"],
+  "Семейни сериали":["Семейные сериалы","Family series","Familienserien","Séries familiales","Series familiares","Сімейні серіали","Aile dizileri"],
+  "Холивудски филми":["Голливудские фильмы","Hollywood movies","Hollywood-Filme","Films hollywoodiens","Películas de Hollywood","Голлівудські фільми","Hollywood filmleri"],
+  "Екшън и приключения":["Боевики и приключения","Action and adventure","Action und Abenteuer","Action et aventure","Acción y aventura","Бойовики та пригоди","Aksiyon ve macera"],
+  "Комедии и сериали":["Комедии и сериалы","Comedies and series","Komödien und Serien","Comédies et séries","Comedias y series","Комедії та серіали","Komedi ve dizi"],
+  "Сериали и истории":["Сериалы и истории","Series and stories","Serien und Geschichten","Séries et histoires","Series e historias","Серіали та історії","Dizi ve hikâyeler"],
+  "Екшън сериали":["Сериалы-боевики","Action series","Actionserien","Séries d’action","Series de acción","Серіали-бойовики","Aksiyon dizileri"],
+  "Документални филми":["Документальные фильмы","Documentaries","Dokumentarfilme","Documentaires","Documentales","Документальні фільми","Belgeseller"],
+  "Наука и природа":["Наука и природа","Science and nature","Wissenschaft und Natur","Science et nature","Ciencia y naturaleza","Наука та природа","Bilim ve doğa"],
+  "Лайфстайл и реалити":["Лайфстайл и реалити","Lifestyle and reality","Lifestyle und Reality","Art de vivre et téléréalité","Estilo de vida y realities","Лайфстайл і реаліті","Yaşam tarzı ve realite"],
+  "Спорт и борби":["Спорт и единоборства","Sports and combat sports","Sport und Kampfsport","Sport et sports de combat","Deportes y lucha","Спорт і єдиноборства","Spor ve dövüş sporları"],
+  "Анимации за деца":["Мультфильмы для детей","Cartoons for kids","Zeichentrick für Kinder","Dessins animés pour enfants","Dibujos animados para niños","Мультфільми для дітей","Çocuklar için çizgi film"],
+  "Приказки и анимации":["Сказки и мультфильмы","Fairy tales and cartoons","Märchen und Zeichentrick","Contes et dessins animés","Cuentos y dibujos animados","Казки та мультфільми","Masallar ve çizgi filmler"],
+  "Анимации и шоута":["Мультфильмы и шоу","Cartoons and shows","Zeichentrick und Shows","Dessins animés et émissions","Dibujos animados y programas","Мультфільми та шоу","Çizgi film ve şovlar"],
+  "За най-малките":["Для самых маленьких","For the little ones","Für die Kleinsten","Pour les tout-petits","Para los más pequeños","Для найменших","Küçükler için"],
+  "Музика и шоу":["Музыка и шоу","Music and shows","Musik und Shows","Musique et émissions","Música y programas","Музика та шоу","Müzik ve şov"],
+  "Народна музика":["Народная музыка","Folk music","Volksmusik","Musique folklorique","Música folclórica","Народна музика","Halk müziği"],
+  "Музикални клипове":["Музыкальные клипы","Music videos","Musikvideos","Clips musicaux","Videoclips","Музичні кліпи","Müzik klipleri"],
+  "Фолклор и народни песни":["Фольклор и народные песни","Folklore and folk songs","Folklore und Volkslieder","Folklore et chants populaires","Folclore y canciones populares","Фольклор і народні пісні","Folklor ve halk şarkıları"]};
+const catLabel = (g, gi) => { if (_LI < 0) return g.label; const m = g.label.match(/^(\S+)\s/); return (m ? m[1] + ' ' : '') + CAT_I18N[_LANG][gi]; };
+const chDesc = ch => (_LI >= 0 && DESC_I18N[ch.desc]) ? DESC_I18N[ch.desc][_LI] : (ch.desc || '');
 
 // ── GA4 аналитика ──────────────────────────────────────────────────────────
 function gaEvent(name, params) {
@@ -283,6 +323,9 @@ const container    = document.getElementById('video-container');
 const overlay      = document.getElementById('overlay');
 const statusEl     = document.getElementById('status');
 const liveBadge    = document.getElementById('live-badge');
+liveBadge.innerHTML = '<span class="dot"></span> ' + t.live;
+document.querySelector('#audio-badge .pill').textContent = t.audioPill;
+document.querySelector('.hub-sub').textContent = t.tagline;
 const reloadBtn    = document.getElementById('reload-btn');
 const unmuteBtn    = document.getElementById('unmute-btn');
 const modeBtn      = document.getElementById('mode-btn');
@@ -426,7 +469,7 @@ async function requestWakeLock() {
 function setupMediaSession() {
   if (!('mediaSession' in navigator)) return;
   const name = currentCh ? currentCh.name : 'България ТВ';
-  navigator.mediaSession.metadata = new MediaMetadata({ title:name, artist:'На живо 🔴', album:'България ТВ' });
+  navigator.mediaSession.metadata = new MediaMetadata({ title:name, artist:t.live + ' 🔴', album:'България ТВ' });
   navigator.mediaSession.playbackState = 'playing';
   navigator.mediaSession.setActionHandler('play', async () => { try { await video.play(); } catch(e) {} });
   navigator.mediaSession.setActionHandler('pause', () => { video.pause(); });
@@ -491,7 +534,7 @@ function initQuality(h) {
   if (!btn || !cont) return;
   btn.style.display = 'none'; btn.onclick = null;
   const old = document.getElementById('quality-menu'); if (old) old.remove();
-  const L = getLang(), X = { a: L==='ru'?'Авто':(L==='bg'||L==='uk')?'Авто':'Auto', m: L==='ru'?'Мбит/с':(L==='bg'||L==='uk')?'Мбит/с':'Mbit/s' };
+  const X = { a: t.qAuto, m: t.mbps };
   const KEY = 'rtv_quality';
   const get = () => { try { return localStorage.getItem(KEY) || 'auto'; } catch (e) { return 'auto'; } };
   const set = v => { try { localStorage.setItem(KEY, v); } catch (e) {} };
@@ -747,7 +790,7 @@ function rowEl(ch) {
   r.innerHTML = `<div class="ch-icon${ch.logo ? ' ch-logo' : ''}" style="background:${ch.iconBg};color:${ch.color}">${ch.logo ? `<img src="${ch.logo}" alt="${ch.icon}" loading="lazy">` : ch.icon}</div>
     <div class="rn"><b></b><small></small></div><span class="live">LIVE</span>`;
   r.querySelector('b').textContent = ch.name;
-  r.querySelector('small').textContent = ch.desc || '';
+  r.querySelector('small').textContent = chDesc(ch);
   const im = r.querySelector('.ch-logo img');
   if (im) im.onerror = () => { const b = im.parentElement; b.classList.remove('ch-logo'); b.textContent = ch.icon; };
   r.onclick = () => openChannel(ch);
@@ -770,7 +813,7 @@ function buildHub() {
     chipsEl.appendChild(b);
   };
   chip(t.all, -1);
-  CHANNEL_GROUPS.forEach((g, gi) => chip(g.label, gi));
+  CHANNEL_GROUPS.forEach((g, gi) => chip(catLabel(g, gi), gi));
   searchEl.addEventListener('input', renderList);
   renderList();
 }
@@ -789,7 +832,7 @@ function openChannel(ch) {
   currentCh = ch;
   plEl.style.display = 'block'; document.body.classList.add('playing');
   chTitle.textContent = ch.name;
-  document.getElementById('ch-desc').textContent = ch.desc || '';
+  document.getElementById('ch-desc').textContent = chDesc(ch);
   markRows(); plh();
   if (tg?.BackButton) { try { tg.BackButton.show(); } catch (e) {} }
   try { history.replaceState(null, '', location.pathname + location.search + '#' + ch.id); } catch (e) {}

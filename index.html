@@ -139,7 +139,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v30 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v31 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -163,6 +163,7 @@ function tvUrl(u) {
   return m ? 'https://ro.glebul.com/hls/' + (m[1] || m[2]) + '/index.m3u8' + (m[3] || '') : u;
 }
 const SITE_URL = 'https://varenik-ai.github.io/bulgaria-tv-hub/';
+const APP_URL = 'https://t.me/BulgariaTV_Live_bot/bulgariatv_live_bot';   // мини-апп в Telegram; ?startapp=<id канала> открывает канал
 
 // v26: запуск в Telegram 1:1 как в мини-аппе tv-indonesia (и russia-tv-hub): только ready, expand и цвет шапки из темы
 if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('secondary_bg_color'); } catch (e) {} }
@@ -855,16 +856,20 @@ function goToHub() {
 backBtn.onclick = () => goToHub();
 if (tg?.BackButton) { try { tg.BackButton.onClick(goToHub); } catch (e) {} }
 
-// «Поделиться»: ссылка на канал на сайте через окно пересылки Telegram (как в tv-indonesia)
+// «Поделиться» (v31): в окно пересылки Telegram уходит ссылка на мини-апп с этим каналом (?startapp=<id>), а не на сайт:
+// адресат открывает канал сразу в Telegram. Если окно пересылки не открылось, причина показывается на экране.
 const shareBtn = document.getElementById('share-btn');
 shareBtn.textContent = t.share;
 shareBtn.onclick = () => {
   if (!currentCh) return;
-  const link = SITE_URL + '#' + currentCh.id;
+  const link = APP_URL + '?startapp=' + currentCh.id;
   const u = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(currentCh.name + ' — live');
+  if (IN_TG && tg?.openTelegramLink) {
+    try { tg.openTelegramLink(u); return; }
+    catch (e) { toast('Share: ' + ((e && e.message) || e)); try { tg.openLink(u, { try_instant_view: false }); return; } catch (e2) {} }
+  }
   // Вне Telegram openTelegramLink уводит со страницы: там открываем в новой вкладке
-  if (IN_TG && tg?.openTelegramLink) { try { tg.openTelegramLink(u); return; } catch (e) {} }
-  window.open(u, '_blank');
+  if (!window.open(u, '_blank')) toast(link);
 };
 
 // ── Благодарность через Telegram Stars (⭐) ──────────────────────────────

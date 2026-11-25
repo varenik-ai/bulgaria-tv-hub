@@ -140,7 +140,7 @@
   <div class="cw"><div class="chips" id="chips"></div></div>
   <div class="list" id="list"></div>
   <button class="thank-btn" id="thank-btn-hub"></button>
-  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v28 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
+  <div style="margin-top:14px;font-size:11px;color:#333;text-align:center">v29 · <a href="privacy.html" id="privacy-link" style="color:inherit;text-decoration:none">Privacy</a></div>
 </div>
 </div>
 
@@ -155,7 +155,11 @@ const tg = window.Telegram?.WebApp;
 const IN_TG = !!(tg && tg.initData);   // внутри Telegram видео на ТВ не транслируется (AirPlay — только звук, Cast нет)
 // Трансляция на ТВ: телевизор сам скачивает поток без VPN телефона. Из российских сетей cdn3/cdn11/mx86 (OVH) зависают на ~16 КБ,
 // а ro.glebul.com проходит и отдаёт все каналы; токены e=/hash= совместимы между узлами.
+// v29: ro.glebul.com 25.11.2026 не отвечал на плейлисты ни из дома, ни через VPN, поэтому узел для ТВ отключён: воркер сам отдаёт
+// рабочие узлы mx86/uk, а ТВ берёт ту же ссылку. Если провайдер снова начнёт обрезать mx86/uk для ТВ — включить USE_RO.
+const USE_RO = false;
 function tvUrl(u) {
+  if (!USE_RO) return u;
   const m = u.match(/^https:\/\/[^/]+\.glebul\.com\/(?:hlsfhd\/([^/?]+)\.m3u8|hls\/([^/?]+)\/index\.m3u8)(\?.*)?$/);
   return m ? 'https://ro.glebul.com/hls/' + (m[1] || m[2]) + '/index.m3u8' + (m[3] || '') : u;
 }
@@ -230,7 +234,6 @@ const CHANNEL_GROUPS = [
     label: '👶 Детски',
     channels: [
       { id:'cartoon',       name:'Cartoon Network', desc:'Анимации за деца', icon:'CN',   color:'#e53935', iconBg:'#1a0a0a', logo:'logos/cartoon.png', stream: PROXY+'/stream?channel=cartoon' },
-      { id:'disney',        name:'Disney Channel', desc:'Приказки и анимации', icon:'DIS',  color:'#1976d2', iconBg:'#0a0f1a', logo:'logos/disney.png', stream: PROXY+'/stream?channel=disney' },
       { id:'nickelodeon',   name:'Nickelodeon', desc:'Анимации и шоута', icon:'NIK',  color:'#ff6f00', iconBg:'#1a1200', logo:'logos/nickelodeon.png', stream: PROXY+'/stream?channel=nickelodeon' },
       { id:'nickjr',        name:'Nick Jr', desc:'За най-малките', icon:'NJR',  color:'#ff8f00', iconBg:'#1a1400', logo:'logos/nickjr.png', stream: PROXY+'/stream?channel=nickjr' },
     ]

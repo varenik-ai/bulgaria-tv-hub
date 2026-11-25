@@ -118,6 +118,11 @@ async function getStreamUrl(slug) {
       streamUrl = `https://mx86.glebul.com/hlsfhd/${roMatch[1]}.m3u8${roMatch[2]}`;
     }
   }
+  // v14 (25.11.2026): источник отдаёт узлы, которые бывают мертвы или недоступны из РФ без VPN. Замеры в тот день:
+  // cdn11.glebul.com не отвечал ни у кого (из дома «отказ», через VPN обрыв, из Cloudflare 521), а mx86 отдаёт те же каналы
+  // с теми же токенами (14 из 14, полные сегменты из дома и через VPN); us.glebul.com из дома без VPN не открывался,
+  // а uk.glebul.com с теми же путями и токенами работает (13 из 14).
+  streamUrl = streamUrl.replace('://cdn11.glebul.com/', '://mx86.glebul.com/').replace('://us.glebul.com/', '://uk.glebul.com/');
   return streamUrl;
 }
 
@@ -210,7 +215,7 @@ export default {
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v13', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v14', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

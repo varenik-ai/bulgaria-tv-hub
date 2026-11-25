@@ -49,7 +49,7 @@
 ## Трансляция на ТВ (по эталону russia-tv-hub, Bulgaria v15)
 - **iOS (в том числе внутри Telegram):** блок AirPlay скопирован из эталона 1:1. Кнопка «📲 AirPlay» видна у каждого канала (`airVis` не зависит от наличия AirPlay API). Если API есть: первое нажатие на `blob:`-источнике (hls.js) ставит `_forceNative = true`, текст «📲 AirPlay ▶», канал перезапускается на нативном HLS; следующее нажатие открывает `webkitShowPlaybackTargetPicker()`. Если API нет (WebView Telegram) — страница канала открывается во внешнем Safari: `window.open(SITE_URL + '#<id>')`, запасной путь `tg.openLink`.
 - **`_forceNative` не сбрасывается** при смене канала (как в эталоне), а в `loadStream` условие `_forceNative && isIOS() && canPlayType('application/vnd.apple.mpegurl')`.
-- **Android/Desktop в Telegram** (единственное отличие от эталона): Cast из WebView невозможен, поэтому показана «📺 На ТВ»: `window.open(SITE_URL + '#<id>')` (запасной путь `tg.openLink`) открывает канал во внешнем Chrome. На iOS эта кнопка скрыта, её роль у AirPlay.
+- **Android/Desktop в Telegram:** с v30 кнопки «📺 На ТВ» нет (Cast из WebView невозможен, а она лишь открывала сайт). Вне Telegram Cast работает через `cast.js`
 - **Google Cast** (`cast.js`) работает только вне Telegram (Chromium): Default Media Receiver, `loadMedia` с прямой ссылкой на плейлист; во время трансляции локальное видео стоит, сторож зависания отключён (`window.__castActive`). `?castdebug=1` показывает состояние.
 - Кнопки «Смотреть на сайте» нет (решение владельца). `<meta name="referrer" content="no-referrer">` есть.
 - **Не проверено на реальном ТВ.** Проверено подставными окружениями: iOS без AirPlay API, iOS с API (два шага, `_forceNative` сохраняется при смене канала), Android в Telegram.
@@ -89,7 +89,7 @@
 
 ## AirPlay по возможности, а не по устройству, v27
 - `_airCapable = isIOS() || (есть video.webkitShowPlaybackTargetPicker && нативный HLS)`. Там «📲 AirPlay», `_forceNative = _airCapable` (нативный плеер и `tvUrl`).
-- Так AirPlay получают Mac в Telegram (если его WebView даёт выбор ТВ) и Safari на Mac. Без выбора ТВ — «📺 На ТВ» в Telegram и Cast в Chrome, как раньше.
+- Так AirPlay получают Mac в Telegram (если его WebView даёт выбор ТВ) и Safari на Mac. Без выбора ТВ в Telegram никакой кнопки ТВ нет (v30), в Chrome вне Telegram — Cast
 - В Safari на Mac из-за нативного плеера нет кнопки качества. Проверено только на имитациях: есть ли выбор ТВ в Telegram для Mac — не проверено.
 
 ## Все надписи на языке интерфейса, v28
@@ -103,3 +103,9 @@
 - Страница: `USE_RO = false`, `tvUrl()` ничего не подменяет, ТВ берёт ту же ссылку, что телефон. ro (v19) оставлен под флагом: включать, только если провайдер снова начнёт обрезать mx86/uk для ТВ и ro при этом отвечает. Урок v23: нельзя делать просмотр зависимым от одного узла (`_forceNative` на iPhone вместе с ro ломал все каналы, когда ro замолчал).
 - Disney Channel убран из списка: на `uk`, `us`, `mx86` отвечает 404 (в том числе под слагом `hd-disney-channel-hd`), у источника канал не отдаётся.
 - Проверка при сбоях: `curl -s -A AppleCoreMedia/1.0.0 "<url из /stream?channel=ID>"`, затем плейлист и один сегмент, и из дома (`--interface en0`), и через VPN. Узел, который проходит в обоих местах, и есть рабочий.
+
+## Автоматическая проверка серверов, v30
+- `scripts/check_streams.py`: для каждого канала берёт ссылку у воркера, скачивает плейлист и один сегмент (две попытки на шаг). Только стандартная библиотека и curl. Результат: таблица по узлам и каналам, `status.json`.
+- Код выхода 1, если не играют ≥ 2 канала, есть мёртвый узел (≥ 2 канала на нём и ни одного рабочего) или воркер не отвечает. Один неисправный канал — только предупреждение.
+- `.github/workflows/check-streams.yml`: раз в 3 часа и вручную. При сбое GitHub присылает письмо о неудачном запуске, таблица лежит в сводке запуска, `status.json` в артефактах 7 дней.
+- GitHub считает из США: узел, недоступный из РФ (как `us.glebul.com` 25.11.2026), так не поймать. Для РФ запускай дома: `python3 scripts/check_streams.py --iface en0` (macOS, мимо VPN).

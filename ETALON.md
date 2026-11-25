@@ -112,6 +112,10 @@
 
 ## Обновление после выпуска (вручную, решение 25.11.2026)
 - Самообновление страницы не делаем: правки выходят редко.
-- При каждом выпуске мини-аппа поднимать `?v=` в `WEB_URL` воркера бота (`bulgaria-bot-worker.js`, сейчас `?v=32`, равно номеру версии внизу списка) и выкладывать воркер бота: `cd ~/bulgaria-bot-worker && cp ~/bulgaria-tv-hub/bulgaria-bot-worker.js src/index.js && npx wrangler deploy`. Это обновляет только кнопку «Смотреть» в сообщении бота; мини-апп по прямой ссылке `t.me/BulgariaTV_Live_bot/bulgariatv_live_bot` берёт адрес из BotFather.
+- При каждом выпуске мини-аппа поднимать `?v=` в `WEB_URL` воркера бота (`bulgaria-bot-worker.js`, сейчас `?v=33`, равно номеру версии внизу списка) и выкладывать воркер бота: `cd ~/bulgaria-bot-worker && cp ~/bulgaria-tv-hub/bulgaria-bot-worker.js src/index.js && npx wrangler deploy`. Это обновляет только кнопку «Смотреть» в сообщении бота; мини-апп по прямой ссылке `t.me/BulgariaTV_Live_bot/bulgariatv_live_bot` берёт адрес из BotFather.
 - После выпуска сообщать пользователю номер версии внизу списка. Если на Android она старая: Telegram → Настройки → Данные и память → Использование памяти → Очистить кэш.
+
+## Полный экран и ограничения высоты окна видео, v33
+- У `#video-container` в списке есть `max-height:52vh` и `aspect-ratio:16/9` (v22). В полном экране (`.css-fs`, `:fullscreen`, `:-webkit-full-screen`) они обязаны сниматься (`max-height:none; aspect-ratio:auto`), иначе плеер занимает 52% высоты, а под ним остаётся список (так было на Android, когда WebView не давал `requestFullscreen` и срабатывал запасной путь `.css-fs`).
+- Любое новое ограничение размера у `#video-container` проверять и в полном экране.
 

@@ -109,20 +109,22 @@ async function getStreamUrl(slug) {
   const m = withToken || anyM3u8;
   if (!m) return null;
   let streamUrl = m[0];
-  // ro.glebul.com заблокирован для Cloudflare IP — конвертируем в mx86.glebul.com
-  // Токены совместимы между CDN: e= и hash= работают на mx86
-  // ro.glebul.com/hls/{slug}/index.m3u8?params → mx86.glebul.com/hlsfhd/{slug}.m3u8?params
+  // ro.glebul.com заблокирован для Cloudflare IP — конвертируем в cdn1.glebul.com (v15)
+  // Токены совместимы между CDN: e= и hash= работают на cdn1
+  // ro.glebul.com/hls/{slug}/index.m3u8?params → cdn1.glebul.com/hlsfhd/{slug}.m3u8?params
   if (streamUrl.includes('ro.glebul.com')) {
     const roMatch = streamUrl.match(/ro\.glebul\.com\/hls\/([^/]+)\/index\.m3u8(.*)/);
     if (roMatch) {
-      streamUrl = `https://mx86.glebul.com/hlsfhd/${roMatch[1]}.m3u8${roMatch[2]}`;
+      streamUrl = `https://cdn1.glebul.com/hlsfhd/${roMatch[1]}.m3u8${roMatch[2]}`;
     }
   }
   // v14 (25.11.2026): источник отдаёт узлы, которые бывают мертвы или недоступны из РФ без VPN. Замеры в тот день:
   // cdn11.glebul.com не отвечал ни у кого (из дома «отказ», через VPN обрыв, из Cloudflare 521), а mx86 отдаёт те же каналы
   // с теми же токенами (14 из 14, полные сегменты из дома и через VPN); us.glebul.com из дома без VPN не открывался,
   // а uk.glebul.com с теми же путями и токенами работает (13 из 14).
-  streamUrl = streamUrl.replace('://cdn11.glebul.com/', '://mx86.glebul.com/').replace('://us.glebul.com/', '://uk.glebul.com/');
+  // v15 (26.11.2026): mx86 стал отвечать 404 на 10 каналов (все, что приходят как ro). cdn1 отдаёт их с теми же токенами
+  // (20 из 20 проверок из дома; источник сам использует cdn1 для других каналов). Замена cdn11 тоже ведёт на cdn1.
+  streamUrl = streamUrl.replace('://cdn11.glebul.com/', '://cdn1.glebul.com/').replace('://us.glebul.com/', '://uk.glebul.com/');
   return streamUrl;
 }
 
@@ -215,7 +217,7 @@ export default {
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v14', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v15', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }

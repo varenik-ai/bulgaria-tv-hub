@@ -90,6 +90,60 @@ const CHANNELS = {
   vtk:           'vtk',
 };
 
+// v16: выбор живого узла. Узлы источника отказывают по очереди (cdn11, us, ro, mx86), поэтому перед выдачей ссылки
+// воркер открывает плейлист: сначала обычный адрес, а если он не отвечает, те же путь и токен на других узлах.
+// us.glebul.com в запасные не берём: из РФ без VPN он не открывается, а проверка из Cloudflare этого не увидит.
+const SPARE_NODES = ['cdn1', 'cdn5', 'uk', 'mx86', 'ro'];
+const PROBE_TIMEOUT_MS = 3000;
+const NODE_TTL_MS = 60000;
+const nodeCache = new Map(); // slug → { key: адрес без токена, until }; живёт в памяти одного экземпляра воркера
+
+const addrKey = u => u.split('?')[0];
+
+async function isPlaylistAlive(u) {
+  try {
+    // Проверяем не тот адрес, что получит зритель: cdn1 запоминает ответ по адресу, и после запроса воркера (он просит
+    // сжатие) отдавал зрителю тот же сжатый плейлист, даже когда тот сжатия не просил. Лишний параметр это разделяет.
+    const r = await fetch(u + (u.includes('?') ? '&probe=1' : '?probe=1'), {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://www.seirsanduk.online/',
+        'Origin': 'https://www.seirsanduk.online',
+      },
+      cf: { cacheEverything: false },
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    });
+    if (!r.ok) return false;
+    const text = await r.text();
+    // Пустой плейлист (одни служебные строки) тоже считаем нерабочим
+    return text.startsWith('#EXTM3U') && text.split('\n').some(l => l.trim() && !l.startsWith('#'));
+  } catch (e) {
+    return false;
+  }
+}
+
+async function pickLiveUrl(slug, preferred, source) {
+  if (!/:\/\/[a-z0-9-]+\.glebul\.com\//.test(preferred)) return preferred;
+  const onNode = n => preferred.replace(/:\/\/[a-z0-9-]+\.glebul\.com\//, `://${n}.glebul.com/`);
+  // Порядок: обычный адрес, адрес источника как есть, затем запасные узлы
+  const candidates = [...new Set([preferred, source, ...SPARE_NODES.map(onNode)])]
+    .filter(u => !u.includes('://us.glebul.com/'));
+
+  const cached = nodeCache.get(slug);
+  if (cached && cached.until > Date.now()) {
+    const hit = candidates.find(u => addrKey(u) === cached.key);
+    if (hit) return hit;
+  }
+  const remember = u => { nodeCache.set(slug, { key: addrKey(u), until: Date.now() + NODE_TTL_MS }); return u; };
+
+  if (await isPlaylistAlive(candidates[0])) return remember(candidates[0]);
+  const rest = candidates.slice(1);
+  const alive = await Promise.all(rest.map(isPlaylistAlive));
+  const i = alive.indexOf(true);
+  // Не ответил никто — отдаём обычный адрес: из Cloudflare узел может быть не виден, а у зрителя открыться
+  return i >= 0 ? remember(rest[i]) : preferred;
+}
+
 async function getStreamUrl(slug) {
   const pageUrl = `https://www.seirsanduk.online/?player=11&id=${slug}&pass=`;
   const r = await fetch(pageUrl, {
@@ -109,6 +163,7 @@ async function getStreamUrl(slug) {
   const m = withToken || anyM3u8;
   if (!m) return null;
   let streamUrl = m[0];
+  const sourceUrl = streamUrl;
   // ro.glebul.com заблокирован для Cloudflare IP — конвертируем в cdn1.glebul.com (v15)
   // Токены совместимы между CDN: e= и hash= работают на cdn1
   // ro.glebul.com/hls/{slug}/index.m3u8?params → cdn1.glebul.com/hlsfhd/{slug}.m3u8?params
@@ -125,7 +180,7 @@ async function getStreamUrl(slug) {
   // v15 (26.11.2026): mx86 стал отвечать 404 на 10 каналов (все, что приходят как ro). cdn1 отдаёт их с теми же токенами
   // (20 из 20 проверок из дома; источник сам использует cdn1 для других каналов). Замена cdn11 тоже ведёт на cdn1.
   streamUrl = streamUrl.replace('://cdn11.glebul.com/', '://cdn1.glebul.com/').replace('://us.glebul.com/', '://uk.glebul.com/');
-  return streamUrl;
+  return pickLiveUrl(slug, streamUrl, sourceUrl);
 }
 
 // Проксирует плейлист/сегмент источника; в m3u8 переписывает адреса на воркер (нужно ТВ по AirPlay: телевизор сам ходит за потоком)
@@ -217,7 +272,7 @@ export default {
     }
 
     if (url.pathname === '/version') {
-      return new Response(JSON.stringify({ version: 'glebul-v15', channels: Object.keys(CHANNELS) }), {
+      return new Response(JSON.stringify({ version: 'glebul-v16', channels: Object.keys(CHANNELS) }), {
         headers: { ...CORS, 'Content-Type': 'application/json' }
       });
     }
